@@ -41,7 +41,7 @@ export const PwaBanners: React.FC = () => {
     <>
       {/* Update available */}
       {updateReady && (
-        <div className="fixed inset-x-0 bottom-4 z-50 flex justify-center px-4">
+        <div className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom,0px)+4.5rem)] z-50 flex justify-center px-3 md:bottom-4 md:px-4">
           <div className="flex w-full max-w-md items-center gap-3 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 shadow-xl shadow-slate-900/10">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
               <RefreshCw className="h-4 w-4" />
@@ -73,7 +73,7 @@ export const PwaBanners: React.FC = () => {
 
       {/* Install prompt */}
       {canInstall && !installed && !updateReady && (
-        <div className="fixed inset-x-0 bottom-4 z-40 flex justify-center px-4">
+        <div className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom,0px)+4.5rem)] z-40 flex justify-center px-3 md:bottom-4 md:px-4">
           <div className="flex w-full max-w-md items-center gap-3 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 shadow-xl shadow-slate-900/10">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-600 text-white">
               <Download className="h-4 w-4" />
@@ -110,7 +110,7 @@ export const PwaBanners: React.FC = () => {
             role="dialog"
             aria-modal="true"
             aria-label={`What's new in version ${APP_VERSION}`}
-            className="w-full max-w-sm overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
+            className="sheet-enter max-h-[85vh] w-full max-w-sm overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-2xl"
           >
             <div className="bg-[linear-gradient(135deg,#1e1b4b,#4338ca)] px-5 py-4 text-white">
               <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-indigo-200">

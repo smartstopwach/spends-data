@@ -45,7 +45,7 @@ export const KpiCards: React.FC<KpiCardsProps> = React.memo(
     safeDailyAllowance,
     onQuickAdd,
   }) => (
-    <section aria-label="Key metrics" className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+    <section aria-label="Key metrics" className="grid grid-cols-2 gap-2.5 sm:gap-4 xl:grid-cols-4">
       {/* Balance — primary card */}
       <article className="col-span-2 overflow-hidden rounded-2xl border border-indigo-900/20 bg-[linear-gradient(135deg,#1e1b4b_0%,#312e81_55%,#4338ca_100%)] p-4 text-white shadow-[0_18px_40px_-28px_rgba(49,46,129,0.9)] sm:p-5 xl:col-span-1">
         <div className="flex items-start justify-between gap-2">
@@ -54,7 +54,7 @@ export const KpiCards: React.FC<KpiCardsProps> = React.memo(
               Available Balance
             </p>
             <p
-              className={`num mt-2 text-2xl font-bold leading-none tracking-tight sm:text-[28px] ${
+              className={`num truncate-amount mt-2 text-[26px] font-bold leading-none tracking-tight sm:text-[28px] ${
                 walletBalance < 0 ? 'text-rose-200' : 'text-white'
               }`}
             >
@@ -75,16 +75,16 @@ export const KpiCards: React.FC<KpiCardsProps> = React.memo(
       </article>
 
       {/* Income */}
-      <article className="rounded-2xl panel p-4 sm:p-5">
+      <article className="panel min-w-0 rounded-2xl p-3.5 sm:p-5">
         <div className="flex items-start justify-between gap-2">
           <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-500">
             Money In
           </p>
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 sm:h-8 sm:w-8">
             <ArrowDownLeft className="h-4 w-4" />
           </span>
         </div>
-        <p className="num mt-2.5 text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
+        <p className="num truncate-amount mt-2.5 text-[19px] font-bold tracking-tight text-slate-900 sm:text-2xl">
           {formatINR(periodIncome)}
         </p>
         <div className="mt-3 flex items-center justify-between gap-2">
@@ -102,16 +102,16 @@ export const KpiCards: React.FC<KpiCardsProps> = React.memo(
       </article>
 
       {/* Spend */}
-      <article className="rounded-2xl panel p-4 sm:p-5">
+      <article className="panel min-w-0 rounded-2xl p-3.5 sm:p-5">
         <div className="flex items-start justify-between gap-2">
           <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-500">
             Total Spends
           </p>
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-50 text-rose-600">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-rose-50 text-rose-600 sm:h-8 sm:w-8">
             <ArrowUpRight className="h-4 w-4" />
           </span>
         </div>
-        <p className="num mt-2.5 text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
+        <p className="num truncate-amount mt-2.5 text-[19px] font-bold tracking-tight text-slate-900 sm:text-2xl">
           {formatINR(periodSpend)}
         </p>
         <div className="mt-3 flex items-center justify-between gap-2">
@@ -127,16 +127,16 @@ export const KpiCards: React.FC<KpiCardsProps> = React.memo(
       </article>
 
       {/* Daily average / safe allowance */}
-      <article className="col-span-2 rounded-2xl panel p-4 sm:p-5 xl:col-span-1">
+      <article className="panel col-span-2 min-w-0 rounded-2xl p-3.5 sm:p-5 xl:col-span-1">
         <div className="flex items-start justify-between gap-2">
           <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-500">
             Average / Day
           </p>
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 sm:h-8 sm:w-8">
             <Scale className="h-4 w-4" />
           </span>
         </div>
-        <p className="num mt-2.5 text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
+        <p className="num truncate-amount mt-2.5 text-[19px] font-bold tracking-tight text-slate-900 sm:text-2xl">
           {formatINR(dailyAvgSpend)}
         </p>
         <div className="mt-3 flex items-center justify-between gap-2">

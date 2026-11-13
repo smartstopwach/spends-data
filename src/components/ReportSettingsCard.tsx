@@ -123,9 +123,9 @@ export const ReportSettingsCard: React.FC<ReportSettingsCardProps> = React.memo(
     };
 
     return (
-      <section aria-label="Weekly email report" className="panel overflow-hidden">
+      <section aria-label="Weekly email report" className="panel min-w-0 overflow-hidden">
         {/* Header */}
-        <div className="flex items-start justify-between gap-3 border-b border-slate-200/80 px-5 py-4">
+        <div className="flex items-start justify-between gap-3 border-b border-slate-200/80 px-4 py-3.5 sm:px-5 sm:py-4">
           <div className="flex items-start gap-2.5">
             <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
               <Mail className="h-4 w-4" />
@@ -158,7 +158,7 @@ export const ReportSettingsCard: React.FC<ReportSettingsCardProps> = React.memo(
           </button>
         </div>
 
-        <div className={`px-5 py-4 ${config.enabled ? '' : 'opacity-70'}`}>
+        <div className={`px-4 py-3.5 sm:px-5 sm:py-4 ${config.enabled ? '' : 'opacity-70'}`}>
           {/* Email + schedule */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="sm:col-span-2">

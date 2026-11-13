@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  Plus,
   Bell,
   ChevronDown,
   ChevronLeft,
@@ -221,24 +222,28 @@ export const App: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5">
-            <AppNav
-              view={view}
-              onNavigate={goTo}
-              counts={{
-                transactions: periodTransactions.length,
-                reports: reportConfig.enabled ? 1 : 0,
-              }}
-            />
+          <div className="flex shrink-0 items-center gap-1.5">
+            {/* Desktop nav + period controls live in the bar; on phones they get
+                their own row below so nothing is squeezed. */}
+            <div className="hidden items-center gap-1.5 md:flex">
+              <AppNav
+                view={view}
+                onNavigate={goTo}
+                counts={{
+                  transactions: periodTransactions.length,
+                  reports: reportConfig.enabled ? 1 : 0,
+                }}
+              />
 
-            <PeriodSwitcher
-              period={periodInfo}
-              state={period}
-              onChange={(next) => {
-                setPeriod(next);
-                setSelectedCategory('all');
-              }}
-            />
+              <PeriodSwitcher
+                period={periodInfo}
+                state={period}
+                onChange={(next) => {
+                  setPeriod(next);
+                  setSelectedCategory('all');
+                }}
+              />
+            </div>
 
             {/* Menu */}
             <div className="relative">
@@ -247,7 +252,7 @@ export const App: React.FC = () => {
                 onClick={() => setMenuOpen((o) => !o)}
                 aria-expanded={menuOpen}
                 aria-haspopup="menu"
-                className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-[11px] font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+                className="flex h-9 items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-[11px] font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 md:h-auto"
                 aria-label="Actions"
               >
                 <span className="hidden sm:inline">Actions</span>
@@ -316,6 +321,20 @@ export const App: React.FC = () => {
                 </>
               )}
             </div>
+          </div>
+        </div>
+        {/* Phone: period controls get their own scrollable row. */}
+        <div className="border-t border-slate-100 md:hidden">
+          <div className="flex items-center justify-between gap-2 px-4 py-2">
+            <PeriodSwitcher
+              period={periodInfo}
+              state={period}
+              compact
+              onChange={(next) => {
+                setPeriod(next);
+                setSelectedCategory('all');
+              }}
+            />
           </div>
         </div>
       </header>
@@ -763,6 +782,17 @@ export const App: React.FC = () => {
           </span>
         </footer>
       </main>
+
+      {/* Phone FAB — one tap to add from any screen, sits above the tab bar. */}
+      <button
+        type="button"
+        onClick={() => handleQuickAdd('spend')}
+        aria-label="Add spend"
+        className="fixed bottom-[calc(env(safe-area-inset-bottom,0px)+72px)] right-4 z-40 flex h-12 items-center gap-1.5 rounded-full bg-indigo-600 pl-3.5 pr-4 text-[12px] font-bold text-white shadow-lg shadow-indigo-900/25 transition active:scale-95 md:hidden"
+      >
+        <Plus className="h-4 w-4" />
+        Add
+      </button>
 
       <PwaBanners />
     </div>

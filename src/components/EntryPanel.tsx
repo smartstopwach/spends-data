@@ -105,7 +105,7 @@ export const EntryPanel: React.FC<EntryPanelProps> = React.memo(
 
     return (
       <section aria-label="Add entry" className="panel flex flex-col overflow-hidden">
-        <header className="flex items-center justify-between border-b border-slate-200/80 px-5 py-3.5">
+        <header className="flex items-center justify-between gap-2 border-b border-slate-200/80 px-4 py-3 sm:px-5 sm:py-3.5">
           <div>
             <h2 className="text-sm font-semibold text-slate-900">New Entry</h2>
             <p className="mt-0.5 text-[11px] font-medium text-slate-500">
@@ -117,13 +117,13 @@ export const EntryPanel: React.FC<EntryPanelProps> = React.memo(
           </span>
         </header>
 
-        <form onSubmit={submit} className="flex flex-col gap-4 p-5">
+        <form onSubmit={submit} className="flex flex-col gap-3.5 p-4 sm:gap-4 sm:p-5">
           {/* Type switch */}
           <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1">
             <button
               type="button"
               onClick={() => onChangeType('spend')}
-              className={`flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-semibold transition ${
+              className={`flex h-10 items-center justify-center gap-1.5 rounded-lg text-[12px] font-semibold transition ${
                 !isIncome
                   ? 'bg-white text-rose-600 shadow-sm ring-1 ring-slate-200'
                   : 'text-slate-500 hover:text-slate-800'
@@ -135,7 +135,7 @@ export const EntryPanel: React.FC<EntryPanelProps> = React.memo(
             <button
               type="button"
               onClick={() => onChangeType('income')}
-              className={`flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-semibold transition ${
+              className={`flex h-10 items-center justify-center gap-1.5 rounded-lg text-[12px] font-semibold transition ${
                 isIncome
                   ? 'bg-white text-emerald-600 shadow-sm ring-1 ring-slate-200'
                   : 'text-slate-500 hover:text-slate-800'
@@ -199,7 +199,7 @@ export const EntryPanel: React.FC<EntryPanelProps> = React.memo(
                   key={amt}
                   type="button"
                   onClick={() => applyChip(amt)}
-                  className="num rounded-lg border border-slate-200 bg-white py-1.5 text-[11px] font-semibold text-slate-600 transition hover:border-indigo-300 hover:bg-indigo-50/50 hover:text-indigo-700 active:scale-[0.98]"
+                  className="num h-9 rounded-lg border border-slate-200 bg-white text-[11px] font-semibold text-slate-600 transition hover:border-indigo-300 hover:bg-indigo-50/50 hover:text-indigo-700 active:scale-[0.97]"
                 >
                   +₹{amt >= 1000 ? `${amt / 1000}k` : amt}
                 </button>
@@ -212,7 +212,7 @@ export const EntryPanel: React.FC<EntryPanelProps> = React.memo(
             <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
               {isIncome ? 'Source' : 'Category (savings counts as a spend)'}
             </p>
-            <div className="grid grid-cols-2 gap-1.5">
+            <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-2">
               {categories.map((c) => {
                 const active = isIncome ? incomeSrc === c.id : spendCat === c.id;
                 return (
@@ -224,7 +224,7 @@ export const EntryPanel: React.FC<EntryPanelProps> = React.memo(
                         ? setIncomeSrc(c.id as IncomeSource)
                         : setSpendCat(c.id as SpendCategory)
                     }
-                    className={`flex items-center gap-2 rounded-lg border px-2.5 py-2 text-left transition ${
+                    className={`flex min-h-[42px] items-center gap-2 rounded-lg border px-2.5 py-2 text-left transition ${
                       active
                         ? 'border-indigo-300 bg-indigo-50/70 ring-1 ring-indigo-200'
                         : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
@@ -256,6 +256,7 @@ export const EntryPanel: React.FC<EntryPanelProps> = React.memo(
               </label>
               <input
                 id="note"
+                enterKeyHint="done"
                 type="text"
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
@@ -326,7 +327,7 @@ export const EntryPanel: React.FC<EntryPanelProps> = React.memo(
                     key={m.id}
                     type="button"
                     onClick={() => setPaymentMode(m.id)}
-                    className={`rounded-md py-1.5 text-[11px] font-semibold transition ${
+                    className={`h-8 rounded-md text-[11px] font-semibold transition ${
                       paymentMode === m.id
                         ? 'bg-white text-slate-900 shadow-sm ring-1 ring-slate-200'
                         : 'text-slate-500 hover:text-slate-800'
@@ -342,7 +343,7 @@ export const EntryPanel: React.FC<EntryPanelProps> = React.memo(
           <button
             type="submit"
             disabled={disabled}
-            className={`flex h-11 w-full items-center justify-center gap-2 rounded-xl text-[13px] font-semibold text-white shadow-sm transition active:scale-[0.995] disabled:cursor-not-allowed disabled:opacity-40 ${
+            className={`flex h-12 w-full items-center justify-center gap-2 rounded-xl text-[13px] font-semibold text-white shadow-sm transition active:scale-[0.995] disabled:cursor-not-allowed disabled:opacity-40 ${
               isIncome
                 ? 'bg-emerald-600 hover:bg-emerald-700'
                 : 'bg-indigo-600 hover:bg-indigo-700'

@@ -58,7 +58,7 @@ const RecordRow: React.FC<{
 
   return (
     <li
-      className={`group grid grid-cols-[1fr_auto] items-center gap-3 px-4 py-2.5 transition-colors hover:bg-slate-50/80 md:px-5 ${
+      className={`group grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-3 transition-colors hover:bg-slate-50/80 sm:gap-3 sm:px-4 sm:py-2.5 md:px-5 ${
         showDate
           ? 'md:grid-cols-[92px_1fr_130px_104px_96px_36px]'
           : 'md:grid-cols-[1fr_130px_104px_96px_36px]'
@@ -113,7 +113,7 @@ const RecordRow: React.FC<{
           onClick={() => onDelete(tx.id)}
           aria-label="Delete entry"
           title="Delete"
-          className="rounded-md p-1.5 text-slate-300 transition hover:bg-rose-50 hover:text-rose-600 focus-visible:opacity-100 md:opacity-0 md:group-hover:opacity-100"
+          className="rounded-md p-2 text-slate-300 transition hover:bg-rose-50 hover:text-rose-600 focus-visible:opacity-100 active:bg-rose-50 active:text-rose-600 md:p-1.5 md:opacity-0 md:group-hover:opacity-100"
         >
           <Trash2 className="h-3.5 w-3.5" />
         </button>
@@ -199,7 +199,7 @@ export const TransactionTabsCard: React.FC<TransactionTabsCardProps> = React.mem
     return (
       <section aria-label="Transactions" className="panel overflow-hidden">
         {/* Header */}
-        <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200/80 px-5 py-4">
+        <div className="flex flex-wrap items-start justify-between gap-2.5 border-b border-slate-200/80 px-4 py-3.5 sm:gap-3 sm:px-5 sm:py-4">
           <div>
             <h2 className="text-sm font-semibold text-slate-900">Recent entries</h2>
             <p className="mt-0.5 text-xs font-medium text-slate-500">
@@ -225,8 +225,8 @@ export const TransactionTabsCard: React.FC<TransactionTabsCardProps> = React.mem
         </div>
 
         {/* Tab bar */}
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/80 bg-slate-50/60 px-3 py-2">
-          <div role="tablist" aria-label="Transaction filters" className="flex items-center gap-1">
+        <div className="flex items-center justify-between gap-2 border-b border-slate-200/80 bg-slate-50/60 px-2 py-2 sm:flex-wrap sm:px-3">
+          <div role="tablist" aria-label="Transaction filters" className="chip-row flex min-w-0 items-center gap-1">
             {TABS.map((t) => {
               const active = tab === t.id;
               return (
@@ -236,7 +236,7 @@ export const TransactionTabsCard: React.FC<TransactionTabsCardProps> = React.mem
                   aria-selected={active}
                   type="button"
                   onClick={() => handleTab(t.id)}
-                  className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition ${
+                  className={`flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 text-xs font-semibold transition ${
                     active
                       ? 'bg-white text-slate-900 shadow-sm ring-1 ring-slate-200'
                       : 'text-slate-500 hover:bg-white/70 hover:text-slate-800'

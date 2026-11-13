@@ -181,9 +181,9 @@ export const TrendCard: React.FC<TrendCardProps> = React.memo(
     const overBudget = budget > 0 && spend > budget;
 
     return (
-      <section aria-label="Spend trend and budget" className="panel flex flex-col p-5">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
+      <section aria-label="Spend trend and budget" className="panel flex flex-col p-4 sm:p-5">
+        <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between sm:gap-3">
+          <div className="min-w-0">
             <h2 className="text-sm font-semibold text-slate-900">Monthly Trend</h2>
             <p className="mt-0.5 text-xs font-medium text-slate-500">
               {monthLabel} · {activeDays} active {activeDays === 1 ? 'day' : 'days'}
@@ -196,11 +196,11 @@ export const TrendCard: React.FC<TrendCardProps> = React.memo(
             </p>
           </div>
 
-          <div className="flex items-center gap-1 rounded-lg bg-slate-100 p-0.5">
+          <div className="chip-row flex items-center gap-1 rounded-lg bg-slate-100 p-0.5 sm:flex-wrap sm:overflow-visible">
             <button
               type="button"
               onClick={() => setSeries('spend')}
-              className={`flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold transition ${
+              className={`flex h-8 shrink-0 items-center gap-1 whitespace-nowrap rounded-md px-2.5 text-[11px] font-semibold transition ${
                 series === 'spend' ? activeTone : 'text-slate-500 hover:text-slate-800'
               }`}
             >
@@ -210,7 +210,7 @@ export const TrendCard: React.FC<TrendCardProps> = React.memo(
             <button
               type="button"
               onClick={() => setSeries('income')}
-              className={`flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold transition ${
+              className={`flex h-8 shrink-0 items-center gap-1 whitespace-nowrap rounded-md px-2.5 text-[11px] font-semibold transition ${
                 series === 'income' ? activeTone : 'text-slate-500 hover:text-slate-800'
               }`}
             >
@@ -220,7 +220,7 @@ export const TrendCard: React.FC<TrendCardProps> = React.memo(
             <button
               type="button"
               onClick={() => setSeries('savings')}
-              className={`flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold transition ${
+              className={`flex h-8 shrink-0 items-center gap-1 whitespace-nowrap rounded-md px-2.5 text-[11px] font-semibold transition ${
                 series === 'savings' ? activeTone : 'text-slate-500 hover:text-slate-800'
               }`}
             >
@@ -231,7 +231,7 @@ export const TrendCard: React.FC<TrendCardProps> = React.memo(
         </div>
 
         {/* Legend / totals */}
-        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] font-medium text-slate-500">
+        <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium text-slate-500 sm:mt-3 sm:gap-x-4">
           <span className="flex items-center gap-1.5">
             <span
               className="h-1.5 w-4 rounded-full"
@@ -279,7 +279,7 @@ export const TrendCard: React.FC<TrendCardProps> = React.memo(
         >
           <svg
             viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
-            className="h-[176px] w-full sm:h-[196px]"
+            className="h-[150px] w-full sm:h-[196px]"
             role="img"
             aria-label={`Daily ${
               series === 'spend' ? 'spending' : series === 'income' ? 'incoming money' : 'savings'
