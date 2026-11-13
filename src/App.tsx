@@ -224,7 +224,7 @@ export const App: React.FC = () => {
           <div className="flex shrink-0 items-center gap-1.5">
             {/* Desktop nav + period controls live in the bar; on phones they get
                 their own row below so nothing is squeezed. */}
-            <div className="hidden items-center gap-1.5 lg:flex">
+            <div className="hidden items-center gap-1.5 md:flex">
               <AppNav
                 view={view}
                 onNavigate={goTo}
@@ -323,7 +323,7 @@ export const App: React.FC = () => {
           </div>
         </div>
         {/* Phone: period controls get their own scrollable row. */}
-        <div className="border-t border-slate-100 lg:hidden">
+        <div className="border-t border-slate-100 md:hidden">
           <div className="flex items-center justify-between gap-2 px-4 py-2">
             <PeriodSwitcher
               period={periodInfo}
@@ -355,7 +355,7 @@ export const App: React.FC = () => {
         </div>
       )}
 
-      <main className="mx-auto max-w-7xl px-3 pb-[calc(env(safe-area-inset-bottom,0px)+6.5rem)] pt-4 sm:px-6 sm:pt-5 lg:pb-14">
+      <main className="mx-auto max-w-7xl px-3 pb-[calc(env(safe-area-inset-bottom,0px)+6.5rem)] pt-4 sm:px-6 sm:pt-5 md:pb-14">
         {due && (
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5">
             <p className="flex items-center gap-2 text-[11px] font-semibold text-amber-900">
@@ -421,9 +421,9 @@ export const App: React.FC = () => {
               onQuickAdd={handleQuickAdd}
             />
 
-            <div className="mt-3 grid grid-cols-1 gap-3 sm:mt-4 sm:gap-4 md:grid-cols-12">
+            <div className="mt-3 grid grid-cols-1 gap-3 sm:mt-4 sm:gap-4 lg:grid-cols-12">
               {/* Add entry first on mobile, right column on desktop */}
-              <div className="order-1 flex flex-col gap-3 sm:gap-4 md:col-span-5 lg:order-2 lg:col-span-4">
+              <div className="order-1 flex flex-col gap-3 sm:gap-4 lg:order-2 lg:col-span-4">
                 <div id="entry-panel" className="scroll-mt-20">
                   <EntryPanel
                     activeType={activeType}
@@ -434,7 +434,7 @@ export const App: React.FC = () => {
                 </div>
               </div>
 
-              <div className="order-2 flex flex-col gap-3 sm:gap-4 md:col-span-7 lg:order-1 lg:col-span-8">
+              <div className="order-2 flex flex-col gap-3 sm:gap-4 lg:order-1 lg:col-span-8">
                 <TrendCard
                   dailySeries={periodAnalytics.dailySeries}
                   savingsMoved={periodAnalytics.savingsMoved}

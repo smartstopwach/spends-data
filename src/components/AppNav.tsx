@@ -26,8 +26,8 @@ export const AppNav: React.FC<AppNavProps> = ({ view, onNavigate, counts }) => {
   return (
     <nav aria-label="Main navigation">
       {/* Mobile: fixed bottom tab bar */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-1px_12px_rgba(15,23,42,0.06)] backdrop-blur-md lg:hidden">
-        <div className="mx-auto flex max-w-lg items-stretch">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-1px_12px_rgba(15,23,42,0.06)] backdrop-blur-md md:hidden">
+        <div className="mx-auto flex max-w-md items-stretch">
           {ITEMS.map((item) => {
             const active = view === item.id;
             const badge = badgeFor(item.id);
@@ -61,7 +61,7 @@ export const AppNav: React.FC<AppNavProps> = ({ view, onNavigate, counts }) => {
       </div>
 
       {/* Desktop: segmented control in the header */}
-      <div className="hidden items-center gap-0.5 rounded-lg border border-slate-200 bg-white p-0.5 shadow-sm lg:flex">
+      <div className="hidden items-center gap-0.5 rounded-lg border border-slate-200 bg-white p-0.5 shadow-sm md:flex">
         {ITEMS.map((item) => {
           const active = view === item.id;
           const badge = badgeFor(item.id);
