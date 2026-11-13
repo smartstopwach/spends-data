@@ -40,33 +40,42 @@ export interface DailySpendPoint {
   isFuture: boolean;
 }
 
+const DEMO_FLAG_KEY = 'ghar_ka_hisaab_demo_v2';
+
+/** Sample rows are always flagged so they can never be mistaken for real data. */
+const isDemo = (tx: Transaction): boolean => tx.id.startsWith('demo-');
+
+const sanitize = (list: unknown): Transaction[] => {
+  if (!Array.isArray(list)) return [];
+  return list.filter(
+    (item) =>
+      item &&
+      typeof item.id === 'string' &&
+      typeof item.date === 'string' &&
+      typeof item.amount === 'number' &&
+      (item.type === 'income' || item.type === 'spend')
+  ) as Transaction[];
+};
+
 export function useSpendsStore() {
+  /**
+   * Real entries only. Sample data is never seeded into the store automatically —
+   * it lives behind an explicit "Load sample data" action and is wiped on the next
+   * visit so the app always opens clean.
+   */
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
     try {
-      const initialized = window.localStorage.getItem(INIT_STORAGE_KEY);
       const saved = window.localStorage.getItem(TX_STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          return parsed.filter(
-            (item) =>
-              item &&
-              typeof item.id === 'string' &&
-              typeof item.date === 'string' &&
-              typeof item.amount === 'number' &&
-              (item.type === 'income' || item.type === 'spend')
-          );
-        }
+      const parsed = sanitize(saved ? JSON.parse(saved) : []);
+      // Drop any sample rows saved by earlier versions, and clear the demo flag.
+      const real = parsed.filter((item) => !isDemo(item));
+      if (window.localStorage.getItem(DEMO_FLAG_KEY) === '1') {
+        window.localStorage.removeItem(DEMO_FLAG_KEY);
+        window.localStorage.setItem(TX_STORAGE_KEY, JSON.stringify(real));
       }
-      if (!initialized) {
-        const demo = createSampleTransactions(new Date());
-        window.localStorage.setItem(INIT_STORAGE_KEY, '1');
-        window.localStorage.setItem(TX_STORAGE_KEY, JSON.stringify(demo));
-        return demo;
-      }
-      return [];
+      return real;
     } catch {
-      return createSampleTransactions(new Date());
+      return [];
     }
   });
 
@@ -94,8 +103,15 @@ export function useSpendsStore() {
 
   useEffect(() => {
     try {
-      localStorage.setItem(TX_STORAGE_KEY, JSON.stringify(transactions));
+      // Sample rows are session-only so a reload always starts from real data.
+      const persistable = transactions.filter((tx) => !isDemo(tx));
+      localStorage.setItem(TX_STORAGE_KEY, JSON.stringify(persistable));
       localStorage.setItem(INIT_STORAGE_KEY, '1');
+      if (persistable.length !== transactions.length) {
+        localStorage.setItem(DEMO_FLAG_KEY, '1');
+      } else {
+        localStorage.removeItem(DEMO_FLAG_KEY);
+      }
     } catch {
       // ignore quota errors
     }
@@ -154,15 +170,20 @@ export function useSpendsStore() {
   }, []);
 
   const clearDemoTransactions = useCallback(() => {
-    setTransactions((prev) => prev.filter((tx) => !tx.id.startsWith('demo-')));
+    setTransactions((prev) => prev.filter((tx) => !isDemo(tx)));
+    try {
+      window.localStorage.removeItem(DEMO_FLAG_KEY);
+    } catch {
+      // ignore
+    }
   }, []);
 
   const loadDemoData = useCallback(() => {
-    const demo = createSampleTransactions(new Date());
-    setTransactions((prev) => {
-      const withoutOldDemo = prev.filter((tx) => !tx.id.startsWith('demo-'));
-      return [...demo, ...withoutOldDemo];
-    });
+    const demo = createSampleTransactions(new Date()).map((tx) => ({
+      ...tx,
+      id: `demo-${tx.id.replace(/^demo-/, '')}`,
+    }));
+    setTransactions((prev) => [...demo, ...prev.filter((tx) => !isDemo(tx))]);
     setPeriodState(currentPeriod('month'));
   }, []);
 
@@ -216,7 +237,7 @@ export function useSpendsStore() {
     }
   }, []);
 
-  const hasDemoEntries = useMemo(() => transactions.some((t) => t.id.startsWith('demo-')), [transactions]);
+  const hasDemoEntries = useMemo(() => transactions.some(isDemo), [transactions]);
 
   // All-time wallet totals
   const walletSummary = useMemo(() => {

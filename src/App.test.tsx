@@ -16,7 +16,9 @@ describe('Full App Render Smoke Test', () => {
     expect(html).toContain('Latest Activity');
     expect(html).toContain('Transactions');
     expect(html).toContain('Settings');
-    expect(html).toContain('₹5,692');
+    // A fresh visit always opens with real (empty) data, never sample rows.
+    expect(html).toContain('No entries yet');
+    expect(html).not.toContain('demo-');
   });
 
   it('renders the standalone transactions section with tabs', () => {

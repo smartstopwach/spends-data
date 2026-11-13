@@ -324,14 +324,14 @@ export const App: React.FC = () => {
         <div className="border-b border-indigo-200 bg-indigo-50/70">
           <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 py-2 sm:px-6">
             <p className="text-[11px] font-semibold text-indigo-900">
-              You are viewing sample data. Add your own entry any time.
+              Sample data is temporary — it clears automatically and is never saved.
             </p>
             <button
               type="button"
               onClick={clearDemoTransactions}
               className="rounded-md bg-indigo-600 px-2.5 py-1 text-[11px] font-semibold text-white transition hover:bg-indigo-700"
             >
-              Clear sample
+              Clear sample now
             </button>
           </div>
         </div>
