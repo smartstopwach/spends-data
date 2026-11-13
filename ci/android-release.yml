@@ -2,8 +2,6 @@ name: Build Android app
 
 on:
   push:
-    branches:
-      - arena/5280413c-spends-data
     paths:
       - 'src/**'
       - 'public/**'
