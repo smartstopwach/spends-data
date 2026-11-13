@@ -1,13 +1,24 @@
 import React, { useState } from 'react';
-import { ArrowDownLeft, ArrowUpRight, Sparkles, X } from 'lucide-react';
-import { AnalyticsPanel } from './components/AnalyticsPanel';
-import { BalanceHero } from './components/BalanceHero';
-import { Header } from './components/Header';
-import { TransactionForm } from './components/TransactionForm';
-import { TransactionList } from './components/TransactionList';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  MoreHorizontal,
+  RotateCcw,
+  Sparkles,
+} from 'lucide-react';
+import { BentoSummaryCards } from './components/BentoSummaryCards';
+import { CategoryCards } from './components/CategoryCards';
+import { HistoryCard } from './components/HistoryCard';
+import { QuickAddCard } from './components/QuickAddCard';
 import { useSpendsStore } from './hooks/useSpendsStore';
 import { SpendCategory, TransactionType } from './types';
-import { exportBackupJSON, exportTransactionsToCSV } from './utils/mathAndFormat';
+import {
+  exportTransactionsToCSV,
+  formatMonthLabel,
+  getCurrentMonthKey,
+  shiftMonthKey,
+} from './utils/mathAndFormat';
 
 export const App: React.FC = () => {
   const {
@@ -15,174 +26,214 @@ export const App: React.FC = () => {
     periodTransactions,
     selectedMonth,
     setSelectedMonth,
-    budgets,
-    setBudgetForMonth,
     walletSummary,
     periodAnalytics,
     hasDemoEntries,
     addTransaction,
-    addMultipleTransactions,
-    updateTransaction,
     deleteTransaction,
     clearDemoTransactions,
     loadDemoData,
     clearAllData,
-    importBackupData,
   } = useSpendsStore();
 
-  const [activeFormType, setActiveFormType] = useState<TransactionType>('spend');
+  const [activeType, setActiveType] = useState<TransactionType>('spend');
   const [focusTrigger, setFocusTrigger] = useState(0);
-  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<SpendCategory | 'all'>('all');
-  const [bannerNotice, setBannerNotice] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<SpendCategory | 'all'>('all');
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  const handleQuickSwitchMode = (mode: TransactionType) => {
-    setActiveFormType(mode);
+  const currentMonthKey = getCurrentMonthKey();
+
+  const handleQuickAdd = (mode: TransactionType) => {
+    setActiveType(mode);
     setFocusTrigger((n) => n + 1);
     const el = document.getElementById('entry-form-card');
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   };
 
-  const handleImportBackup = (rawJson: string) => {
-    const res = importBackupData(rawJson);
-    setBannerNotice(res.message);
-    window.setTimeout(() => setBannerNotice(null), 4000);
-  };
+  const shortMonth =
+    selectedMonth === 'all'
+      ? 'All Time'
+      : new Date(
+          Number(selectedMonth.split('-')[0]),
+          Number(selectedMonth.split('-')[1]) - 1,
+          1
+        ).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 pb-24 lg:pb-12">
-      <Header
-        selectedMonth={selectedMonth}
-        onSelectMonth={(m) => {
-          setSelectedMonth(m);
-          setSelectedCategoryFilter('all');
-        }}
-        onExportCSV={() => exportTransactionsToCSV(transactions)}
-        onExportBackup={() => exportBackupJSON(transactions, budgets)}
-        onImportBackup={handleImportBackup}
-        onLoadDemo={loadDemoData}
-        onClearAll={clearAllData}
-        transactionCount={transactions.length}
-      />
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        {/* Import / System Notice */}
-        {bannerNotice && (
-          <div className="rounded-xl bg-slate-900 text-white px-4 py-3 text-xs sm:text-sm font-medium flex items-center justify-between gap-3">
-            <span>{bannerNotice}</span>
-            <button
-              type="button"
-              onClick={() => setBannerNotice(null)}
-              className="p-1 text-slate-400 hover:text-white cursor-pointer"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        )}
-
-        {/* Friendly Demo Strip */}
-        {hasDemoEntries && (
-          <div className="rounded-2xl bg-amber-50/90 border border-amber-200/80 px-4 py-3 flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5 text-xs sm:text-sm text-amber-950">
-              <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
-              <span>
-                <strong>Demo Preview:</strong> Sample entries dikh rahi hain taaki aap analytics & charts dekh sakein. Apna asli hisaab rakhne ke liye sample hatayein.
-              </span>
+    <div className="min-h-screen bg-[#F5F4F0] text-zinc-900 py-6 sm:py-10 px-4">
+      <div className="max-w-2xl mx-auto space-y-5">
+        {/* Minimal Aesthetic Top Bar */}
+        <header className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-zinc-900 text-emerald-400 font-extrabold text-xl flex items-center justify-center shadow-xs select-none">
+              ₹
             </div>
+            <div>
+              <h1 className="text-lg font-extrabold tracking-tight text-zinc-900 leading-tight">
+                GharKaHisaab
+              </h1>
+              <p className="text-xs font-medium text-zinc-500">
+                Simple Paisa & Spends
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {/* Minimal Pill Month Switcher */}
+            <div className="inline-flex items-center bg-white border border-black/[0.06] rounded-full p-1 shadow-2xs">
+              {selectedMonth !== 'all' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedMonth(shiftMonthKey(selectedMonth, -1));
+                    setSelectedCategory('all');
+                  }}
+                  className="p-1.5 rounded-full text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 transition cursor-pointer"
+                  aria-label="Previous Month"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedMonth(selectedMonth === 'all' ? currentMonthKey : 'all');
+                  setSelectedCategory('all');
+                }}
+                title={`${formatMonthLabel(selectedMonth)} (Click to toggle All Time)`}
+                className="px-2.5 py-1 text-xs font-bold text-zinc-800 cursor-pointer whitespace-nowrap"
+              >
+                {shortMonth}
+              </button>
+
+              {selectedMonth !== 'all' && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedMonth(shiftMonthKey(selectedMonth, 1));
+                    setSelectedCategory('all');
+                  }}
+                  className="p-1.5 rounded-full text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 transition cursor-pointer"
+                  aria-label="Next Month"
+                >
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* Minimal Options Menu */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setMenuOpen((o) => !o)}
+                className="w-9 h-9 rounded-full bg-white border border-black/[0.06] text-zinc-600 hover:text-zinc-900 flex items-center justify-center shadow-2xs cursor-pointer"
+                aria-label="Options"
+              >
+                <MoreHorizontal className="w-4 h-4" />
+              </button>
+
+              {menuOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-30"
+                    onClick={() => setMenuOpen(false)}
+                  />
+                  <div className="absolute right-0 mt-2 w-52 rounded-2xl bg-white border border-zinc-200/80 shadow-xl py-1.5 z-40">
+                    <button
+                      type="button"
+                      disabled={transactions.length === 0}
+                      onClick={() => {
+                        exportTransactionsToCSV(transactions);
+                        setMenuOpen(false);
+                      }}
+                      className="w-full px-3.5 py-2 text-left text-xs font-semibold text-zinc-700 hover:bg-zinc-50 disabled:opacity-40 flex items-center gap-2 cursor-pointer"
+                    >
+                      <Download className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Download Excel / CSV</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        loadDemoData();
+                        setMenuOpen(false);
+                      }}
+                      className="w-full px-3.5 py-2 text-left text-xs font-semibold text-zinc-700 hover:bg-zinc-50 flex items-center gap-2 cursor-pointer"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                      <span>Load Sample Cards</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={transactions.length === 0}
+                      onClick={() => {
+                        clearAllData();
+                        setMenuOpen(false);
+                      }}
+                      className="w-full px-3.5 py-2 text-left text-xs font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-40 flex items-center gap-2 cursor-pointer"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>Reset All (Start ₹0)</span>
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </header>
+
+        {/* Subtle 1-Line Sample Pill */}
+        {hasDemoEntries && (
+          <div className="flex items-center justify-between gap-2 px-4 py-2.5 rounded-full bg-white/80 border border-black/[0.06] text-xs">
+            <span className="text-zinc-600 font-medium truncate">
+              Sample preview dikh raha hai
+            </span>
             <button
               type="button"
               onClick={clearDemoTransactions}
-              className="px-3 py-1.5 rounded-xl bg-amber-900 hover:bg-amber-950 text-white text-xs font-bold transition cursor-pointer shrink-0"
+              className="px-3 py-1 rounded-full bg-zinc-900 hover:bg-zinc-800 text-white font-bold shrink-0 transition cursor-pointer"
             >
-              Clear Sample Data (Start ₹0)
+              Start Fresh (₹0)
             </button>
           </div>
         )}
 
-        {/* Top KPI Summary Cards */}
-        <BalanceHero
+        {/* 1. Aesthetic Bento Balance Cards */}
+        <BentoSummaryCards
           walletBalance={walletSummary.balance}
-          cashBalance={walletSummary.cashBalance}
-          digitalBalance={walletSummary.digitalBalance}
           periodIncome={periodAnalytics.income}
-          homeOnlyIncome={periodAnalytics.homeOnlyIncome}
           periodSpend={periodAnalytics.spend}
-          incomeCount={periodAnalytics.incomeCount}
-          spendCount={periodAnalytics.spendCount}
           dailyAvgSpend={periodAnalytics.dailyAvgSpend}
-          safeDailyAllowance={periodAnalytics.safeDailyAllowance}
-          remainingDays={periodAnalytics.remainingDays}
-          selectedMonth={selectedMonth}
-          onQuickSwitchMode={handleQuickSwitchMode}
+          onQuickAdd={handleQuickAdd}
         />
 
-        {/* Main 2-Column Workspace */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* Left Column: Add Spend / Add Ghar ka Paisa / Calculator */}
-          <div className="lg:col-span-5 lg:sticky lg:top-20">
-            <TransactionForm
-              activeType={activeFormType}
-              onChangeType={setActiveFormType}
-              onAddSingle={addTransaction}
-              onAddMultiple={addMultipleTransactions}
-              focusTrigger={focusTrigger}
-            />
-          </div>
+        {/* 2. Ultra-Simple Quick Add + Math Spend Calculator Card */}
+        <QuickAddCard
+          activeType={activeType}
+          onChangeType={setActiveType}
+          onAdd={addTransaction}
+          focusTrigger={focusTrigger}
+        />
 
-          {/* Right Column: Monthly Analytics + Transaction History */}
-          <div className="lg:col-span-7 space-y-6">
-            <AnalyticsPanel
-              selectedMonth={selectedMonth}
-              activeMonthKey={periodAnalytics.activeMonthKey}
-              periodIncome={periodAnalytics.income}
-              periodSpend={periodAnalytics.spend}
-              periodNet={periodAnalytics.net}
-              configuredBudget={periodAnalytics.configuredBudget}
-              effectiveLimit={periodAnalytics.effectiveLimit}
-              budgetRemaining={periodAnalytics.budgetRemaining}
-              budgetUsedPercent={periodAnalytics.budgetUsedPercent}
-              safeDailyAllowance={periodAnalytics.safeDailyAllowance}
-              remainingDays={periodAnalytics.remainingDays}
-              dailyAvgSpend={periodAnalytics.dailyAvgSpend}
-              categoryBreakdown={periodAnalytics.categoryBreakdown}
-              dailySeries={periodAnalytics.dailySeries}
-              selectedCategoryFilter={selectedCategoryFilter}
-              onSelectCategoryFilter={setSelectedCategoryFilter}
-              onUpdateBudget={setBudgetForMonth}
-            />
+        {/* 3. Aesthetic Category Mini-Cards */}
+        <CategoryCards
+          items={periodAnalytics.categoryBreakdown}
+          selectedCategory={selectedCategory}
+          onSelectCategory={setSelectedCategory}
+        />
 
-            <TransactionList
-              transactions={periodTransactions}
-              selectedCategoryFilter={selectedCategoryFilter}
-              onClearCategoryFilter={() => setSelectedCategoryFilter('all')}
-              onUpdate={updateTransaction}
-              onDelete={deleteTransaction}
-              onLoadDemo={loadDemoData}
-              totalOverallCount={transactions.length}
-            />
-          </div>
-        </div>
-      </main>
-
-      {/* Mobile Sticky Quick Action Bar */}
-      <div className="fixed bottom-0 inset-x-0 z-20 lg:hidden bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 py-2.5 grid grid-cols-2 gap-2.5">
-        <button
-          type="button"
-          onClick={() => handleQuickSwitchMode('spend')}
-          className="py-2.5 px-3 rounded-xl bg-rose-600 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
-        >
-          <ArrowUpRight className="w-4 h-4" />
-          <span>- Spend Add Karein</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => handleQuickSwitchMode('income')}
-          className="py-2.5 px-3 rounded-xl bg-emerald-600 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
-        >
-          <ArrowDownLeft className="w-4 h-4" />
-          <span>+ Ghar Ka Paisa</span>
-        </button>
+        {/* 4. Sleek Recent Hisaab Card */}
+        <HistoryCard
+          transactions={periodTransactions}
+          selectedCategory={selectedCategory}
+          onDelete={deleteTransaction}
+          onLoadDemo={loadDemoData}
+          totalOverallCount={transactions.length}
+        />
       </div>
     </div>
   );
