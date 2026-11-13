@@ -24,4 +24,15 @@ if (fs.existsSync(distTemplateHtml)) {
 fs.copyFileSync(distIndexHtml, rootIndexHtml);
 fs.cpSync(distAssets, rootAssets, { recursive: true });
 
+// Sync app shell files (manifest, icons, service worker) to the repo root too
+const publicDir = path.join(root, 'public');
+if (fs.existsSync(publicDir)) {
+  for (const entry of fs.readdirSync(publicDir)) {
+    fs.cpSync(path.join(publicDir, entry), path.join(root, entry), {
+      recursive: true,
+      force: true,
+    });
+  }
+}
+
 console.log('✓ Optimized build complete: synced hashed index.html + assets/ to root and dist/.');

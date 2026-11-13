@@ -18,8 +18,10 @@ import { KpiCards } from './components/KpiCards';
 import { TransactionTabsCard } from './components/TransactionTabsCard';
 import { RecentPreview } from './components/RecentPreview';
 import { ReportSettingsCard } from './components/ReportSettingsCard';
+import { PwaBanners } from './components/PwaBanners';
 import { TrendCard } from './components/TrendCard';
 import { useEmailReport } from './hooks/useEmailReport';
+import { APP_VERSION } from './version';
 import { useSpendsStore } from './hooks/useSpendsStore';
 import { SpendCategory, TransactionType } from './types';
 import { buildReport, resolveReportRange } from './utils/weeklyReport';
@@ -354,9 +356,16 @@ export const App: React.FC = () => {
                   <LayoutDashboard className="h-4 w-4 text-indigo-500" />
                   Overview
                 </h1>
-                <p className="mt-1 text-[12px] font-medium text-slate-500">
-                  {monthLabel} · <span className="num">{periodTransactions.length}</span>{' '}
-                  {periodTransactions.length === 1 ? 'entry' : 'entries'} · saved in this browser
+                <p className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[12px] font-medium text-slate-500">
+                  <span>
+                    {monthLabel} · <span className="num">{periodTransactions.length}</span>{' '}
+                    {periodTransactions.length === 1 ? 'entry' : 'entries'}
+                  </span>
+                  <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-500">
+                    v{APP_VERSION}
+                  </span>
+                  <span className="text-slate-300">·</span>
+                  <span>saved in this browser</span>
                 </p>
               </div>
 
@@ -643,13 +652,17 @@ export const App: React.FC = () => {
         )}
 
         <footer className="mt-8 flex flex-wrap items-center justify-between gap-2 border-t border-slate-200/80 pt-4 text-[11px] font-medium text-slate-400">
-          <span>Spends Data · offline-first expense tracker</span>
+          <span>
+            Spends Data v{APP_VERSION} · installable app · offline-first
+          </span>
           <span className="num">
             {transactions.length} total records · balance{' '}
             {walletSummary.balance >= 0 ? 'positive' : 'negative'}
           </span>
         </footer>
       </main>
+
+      <PwaBanners />
     </div>
   );
 };
