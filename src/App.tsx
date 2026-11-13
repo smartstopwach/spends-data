@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
+  Bell,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -7,6 +8,7 @@ import {
   FileJson,
   LayoutDashboard,
   ListOrdered,
+  Mail,
   RotateCcw,
   Sparkles,
 } from 'lucide-react';
@@ -15,7 +17,9 @@ import { EntryPanel } from './components/EntryPanel';
 import { KpiCards } from './components/KpiCards';
 import { LedgerTabsCard } from './components/LedgerTabsCard';
 import { RecentPreview } from './components/RecentPreview';
+import { ReportSettingsCard } from './components/ReportSettingsCard';
 import { TrendCard } from './components/TrendCard';
+import { useEmailReport } from './hooks/useEmailReport';
 import { useSpendsStore } from './hooks/useSpendsStore';
 import { SpendCategory, TransactionType } from './types';
 import {
@@ -26,10 +30,13 @@ import {
   shiftMonthKey,
 } from './utils/mathAndFormat';
 
-type View = 'home' | 'ledger';
+type View = 'home' | 'ledger' | 'reports';
 
-const readHashView = (): View =>
-  typeof window !== 'undefined' && window.location.hash === '#ledger' ? 'ledger' : 'home';
+const readHashView = (): View => {
+  if (typeof window === 'undefined') return 'home';
+  const hash = window.location.hash.replace('#', '');
+  return hash === 'ledger' || hash === 'reports' ? hash : 'home';
+};
 
 export const App: React.FC = () => {
   const {
@@ -53,6 +60,7 @@ export const App: React.FC = () => {
   const [focusTrigger, setFocusTrigger] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState<SpendCategory | 'all'>('all');
   const [menuOpen, setMenuOpen] = useState(false);
+  const { config: reportConfig, update: updateReportConfig, markSent, due } = useEmailReport();
 
   const currentMonthKey = getCurrentMonthKey();
   const monthLabel = formatMonthLabel(selectedMonth);
@@ -73,7 +81,7 @@ export const App: React.FC = () => {
   const goTo = useCallback((next: View) => {
     setView(next);
     if (typeof window !== 'undefined') {
-      history.replaceState(null, '', next === 'ledger' ? '#ledger' : location.pathname);
+      history.replaceState(null, '', next === 'home' ? location.pathname : `#${next}`);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, []);
@@ -156,6 +164,22 @@ export const App: React.FC = () => {
                 >
                   {periodTransactions.length}
                 </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => goTo('reports')}
+                aria-current={view === 'reports'}
+                className={`relative flex items-center gap-1 rounded-md px-2 py-1.5 text-[11px] font-semibold transition ${
+                  view === 'reports'
+                    ? 'bg-slate-900 text-white'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                }`}
+              >
+                <Mail className="h-3 w-3" />
+                <span className="hidden sm:inline">Reports</span>
+                {reportConfig.enabled && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden />
+                )}
               </button>
             </nav>
 
@@ -298,6 +322,22 @@ export const App: React.FC = () => {
       )}
 
       <main className="mx-auto max-w-7xl px-4 pb-14 pt-5 sm:px-6">
+        {due && (
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5">
+            <p className="flex items-center gap-2 text-[11px] font-semibold text-amber-900">
+              <Bell className="h-3.5 w-3.5 shrink-0 text-amber-600" />
+              Aapka weekly spends report due hai — {reportConfig.email} par bhejne ka time ho gaya.
+            </p>
+            <button
+              type="button"
+              onClick={() => goTo('reports')}
+              className="rounded-md bg-amber-600 px-2.5 py-1 text-[11px] font-bold text-white transition hover:bg-amber-700"
+            >
+              Send report
+            </button>
+          </div>
+        )}
+
         {view === 'home' ? (
           <>
             {/* Page header */}
@@ -381,7 +421,7 @@ export const App: React.FC = () => {
               </div>
             </div>
           </>
-        ) : (
+        ) : view === 'ledger' ? (
           <>
             {/* ── Recent Hisaab — dedicated section ─────────── */}
             <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
@@ -458,6 +498,119 @@ export const App: React.FC = () => {
               totalOverallCount={transactions.length}
               monthLabel={monthLabel}
             />
+          </>
+        ) : (
+          <>
+            {/* ── Reports — weekly email digest ─────────────── */}
+            <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <button
+                  type="button"
+                  onClick={() => goTo('home')}
+                  className="mb-2 flex items-center gap-1 text-[11px] font-semibold text-slate-500 transition hover:text-indigo-600"
+                >
+                  <ChevronLeft className="h-3 w-3" />
+                  Back to overview
+                </button>
+                <h1 className="flex items-center gap-2 text-lg font-bold tracking-tight text-slate-900 sm:text-xl">
+                  <Mail className="h-4 w-4 text-indigo-500" />
+                  Reports
+                </h1>
+                <p className="mt-1 text-[12px] font-medium text-slate-500">
+                  Har hafte apne spends ka summary email par — choose your Gmail below.
+                </p>
+              </div>
+
+              <span
+                className={`rounded-lg px-3 py-1.5 text-[11px] font-bold ring-1 ${
+                  reportConfig.enabled
+                    ? 'bg-emerald-50 text-emerald-700 ring-emerald-200'
+                    : 'bg-slate-100 text-slate-500 ring-slate-200'
+                }`}
+              >
+                {reportConfig.enabled ? 'Weekly reports ON' : 'Weekly reports OFF'}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+              <div className="lg:col-span-7">
+                <ReportSettingsCard
+                  config={reportConfig}
+                  onChange={updateReportConfig}
+                  transactions={transactions}
+                  onMarkSent={markSent}
+                />
+              </div>
+
+              <div className="flex flex-col gap-4 lg:col-span-5">
+                <section className="panel p-5">
+                  <h2 className="text-sm font-semibold text-slate-900">How it works</h2>
+                  <ol className="mt-3 space-y-3">
+                    {[
+                      {
+                        title: 'Apna Gmail daalein',
+                        body: 'Sirf email address — koi password ya login nahi. Data browser mein hi rehta hai.',
+                      },
+                      {
+                        title: 'Din aur time chunein',
+                        body: 'Har hafte usi din reminder milega (last 7 days ka spend digest ready hoga).',
+                      },
+                      {
+                        title: 'Send now dabayein',
+                        body: 'Gmail compose pre-filled khulega — ya EmailJS set karke poora automatic kar dein.',
+                      },
+                    ].map((step, i) => (
+                      <li key={step.title} className="flex gap-2.5">
+                        <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-[10px] font-bold text-white">
+                          {i + 1}
+                        </span>
+                        <div>
+                          <p className="text-[12px] font-semibold text-slate-900">{step.title}</p>
+                          <p className="mt-0.5 text-[11px] font-medium leading-relaxed text-slate-500">
+                            {step.body}
+                          </p>
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+
+                  <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50/70 p-3">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-slate-400">
+                      Privacy
+                    </p>
+                    <p className="mt-1 text-[11px] font-medium leading-relaxed text-slate-600">
+                      GharKaHisaab static app hai — koi server nahi. Aapke transactions
+                      localStorage mein rehte hain, aur email tab hi banti hai jab aap khud Send
+                      karte hain.
+                    </p>
+                  </div>
+                </section>
+
+                <section className="panel p-5">
+                  <h2 className="text-sm font-semibold text-slate-900">Last 7 days</h2>
+                  <p className="mt-0.5 text-xs font-medium text-slate-500">
+                    Yehi data aapke weekly mail mein jayega.
+                  </p>
+                  <dl className="mt-3 grid grid-cols-2 gap-2">
+                    {[
+                      { label: 'Entries', value: String(periodAnalytics.spendCount + periodAnalytics.incomeCount) },
+                      { label: 'Spends', value: `₹${periodAnalytics.spend.toLocaleString('en-IN')}` },
+                      { label: 'Money in', value: `₹${periodAnalytics.income.toLocaleString('en-IN')}` },
+                      { label: 'Wallet', value: `₹${walletSummary.balance.toLocaleString('en-IN')}` },
+                    ].map((item) => (
+                      <div key={item.label} className="rounded-lg bg-slate-50 px-3 py-2">
+                        <dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+                          {item.label}
+                        </dt>
+                        <dd className="num mt-0.5 text-[13px] font-bold text-slate-900">
+                          {item.value}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                </section>
+              </div>
+            </div>
           </>
         )}
 
