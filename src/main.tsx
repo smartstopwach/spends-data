@@ -4,6 +4,9 @@ import './index.css';
 import App from './App';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { initPwa } from './utils/pwaInstall';
+import { setupNativeShell } from './utils/native';
+
+void setupNativeShell();
 
 // Capture the install prompt before React mounts so the browser event is never missed.
 initPwa();

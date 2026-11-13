@@ -1,4 +1,4 @@
-export const APP_VERSION = '1.3.0';
+export const APP_VERSION = '1.4.0';
 
 export interface ChangelogEntry {
   version: string;
@@ -8,6 +8,17 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: '1.4.0',
+    title: 'Background notifications and Android reminders',
+    date: 'November 2026',
+    items: [
+      'Installed app sends reminders in the background, even when it is closed (Web Push).',
+      'Turn it on in Settings → Notifications; it uses the worker from Reports → Background delivery.',
+      'Android app: reminders are scheduled by the phone itself, so they arrive with the app closed.',
+      'Daily, money-left and weekly report reminders share one schedule on every platform.',
+    ],
+  },
   {
     version: '1.3.0',
     title: 'Install Spends Data as an app',

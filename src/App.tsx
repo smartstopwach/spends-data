@@ -26,6 +26,12 @@ import { SettingsCard } from './components/SettingsCard';
 import { useNotifications } from './hooks/useNotifications';
 import { useStorageUsage } from './hooks/useStorageUsage';
 import { usePwa } from './hooks/usePwa';
+import {
+  ensureNotificationPermission,
+  isNative,
+  scheduleNativeReminders,
+  shareText,
+} from './utils/native';
 import { PwaBanners } from './components/PwaBanners';
 import { DownloadPage } from './components/DownloadPage';
 import { shareSummary, vibrate } from './utils/notifications';
@@ -710,6 +716,18 @@ export const App: React.FC = () => {
               storage={storage}
               transactionCount={transactions.length}
               installed={pwa.installed}
+              nativeApp={isNative()}
+              onScheduleNativeReminders={async (enabled) => {
+                const granted = await ensureNotificationPermission();
+                if (!granted) return false;
+                return scheduleNativeReminders({
+                  enabled,
+                  hour: notifications.settings.reminderHour,
+                  daily: notifications.settings.dailyReminder,
+                  walletAlert: notifications.settings.walletAlerts,
+                  reportReminder: notifications.settings.reportReminder,
+                });
+              }}
               onOpenDownload={() => goTo('download')}
               notifications={{
                 settings: notifications.settings,
@@ -747,6 +765,12 @@ export const App: React.FC = () => {
                     `Spends ₹${week.spend.toLocaleString('en-IN')} · Balance ₹${week.walletBalance.toLocaleString('en-IN')}`
                   );
 
+                if (isNative()) {
+                  void shareText('My Spends Data summary', summary).then((ok) => {
+                    if (!ok) copyFallback();
+                  });
+                  return;
+                }
                 void shareSummary('My Spends Data summary', summary).then((shared) => {
                   if (!shared) copyFallback();
                 });

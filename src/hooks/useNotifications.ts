@@ -9,6 +9,8 @@ import {
   showAppNotification,
 } from '../utils/notifications';
 import { getTodayISO } from '../utils/mathAndFormat';
+import { isNative, scheduleNativeReminders } from '../utils/native';
+import { syncWebPushPrefs } from '../utils/webPush';
 import {
   SwSnapshot,
   composeNotification,
@@ -34,6 +36,20 @@ export function useNotifications() {
   const update = useCallback((next: NotificationSettings) => {
     setSettings(next);
     saveNotificationSettings(next);
+    // On a native build, mirror the plan into OS-level scheduling so reminders
+    // still fire when the app is closed.
+    if (isNative()) {
+      void scheduleNativeReminders({
+        enabled: next.enabled,
+        hour: next.reminderHour,
+        daily: next.dailyReminder,
+        walletAlert: next.walletAlerts,
+        reportReminder: next.reportReminder,
+      });
+    } else {
+      // Keep the worker's Web Push schedule in step with these settings (no-op when off).
+      void syncWebPushPrefs(next);
+    }
   }, []);
 
   const requestPermission = useCallback(async () => {

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   AlertTriangle,
   Bell,
@@ -15,6 +15,15 @@ import {
   Vibrate,
 } from 'lucide-react';
 import { NotificationSettings, vibrate } from '../utils/notifications';
+import {
+  disableWebPush,
+  enableWebPush,
+  getWebPushState,
+  pushPrefsFrom,
+  sendWebPushTest,
+  WebPushState,
+  workerConfig,
+} from '../utils/webPush';
 import { formatBytes, StorageUsage } from '../hooks/useStorageUsage';
 
 interface SettingsCardProps {
@@ -42,6 +51,10 @@ interface SettingsCardProps {
   onPersistStorage: () => Promise<boolean>;
   onShareSummary: () => void;
   onResetAll: () => void;
+  /** True inside the Android app: reminders are scheduled by the OS. */
+  nativeApp: boolean;
+  /** Mirrors the reminder plan into OS-level scheduling. Resolves false when not allowed. */
+  onScheduleNativeReminders: (enabled: boolean) => Promise<boolean>;
 }
 
 const Row: React.FC<{
@@ -84,6 +97,128 @@ const Toggle: React.FC<{ on: boolean; onClick: () => void; label: string }> = ({
   </button>
 );
 
+/** Background (app closed) reminders in the browser / installed PWA, via Web Push. */
+const WebPushRow: React.FC<{ settings: NotificationSettings }> = ({ settings }) => {
+  const [state, setState] = useState<WebPushState | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    void getWebPushState().then((next) => alive && setState(next));
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  if (!state) return null;
+  if (!state.supported) {
+    return (
+      <Row
+        title="Background notifications"
+        subtitle="Not available in this browser. On iPhone, add Spends Data to the Home Screen first."
+      >
+        <span className="text-[11px] font-semibold text-slate-400">Unavailable</span>
+      </Row>
+    );
+  }
+
+  const run = async (action: () => Promise<{ ok: boolean; message: string }>) => {
+    setBusy(true);
+    setMessage(null);
+    const result = await action();
+    setMessage(result.message);
+    setBusy(false);
+    setState(await getWebPushState());
+  };
+
+  return (
+    <Row
+      title="Background notifications"
+      subtitle={
+        state.subscribed
+          ? 'On — reminders arrive even when the app is closed.'
+          : workerConfig().ready
+          ? 'Reminders arrive even when the app is closed. Uses the worker from Reports.'
+          : 'Add the worker URL under Reports → Background delivery first.'
+      }
+    >
+      <div className="flex flex-col items-end gap-1">
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() =>
+            state.subscribed
+              ? void run(disableWebPush)
+              : void run(() => enableWebPush(pushPrefsFrom(settings)))
+          }
+          className={`rounded-lg px-3 py-1.5 text-[11px] font-bold ${
+            state.subscribed ? 'bg-slate-100 text-slate-700' : 'bg-indigo-600 text-white'
+          } disabled:opacity-50`}
+        >
+          {busy ? 'Working…' : state.subscribed ? 'Turn off' : 'Turn on'}
+        </button>
+        {state.subscribed && (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void run(sendWebPushTest)}
+            className="text-[10px] font-semibold text-indigo-600 disabled:opacity-50"
+          >
+            Send test
+          </button>
+        )}
+        {message && <span className="max-w-[16rem] text-right text-[10px] text-slate-500">{message}</span>}
+      </div>
+    </Row>
+  );
+};
+
+/** Android app: OS-level reminders keep working with the app closed and the phone asleep. */
+const NativeReminderRow: React.FC<{
+  settings: NotificationSettings;
+  onSchedule: (enabled: boolean) => Promise<boolean>;
+}> = ({ settings, onSchedule }) => {
+  const [message, setMessage] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const schedule = async (enabled: boolean) => {
+    setBusy(true);
+    const ok = await onSchedule(enabled);
+    setMessage(
+      !ok
+        ? 'Allow notifications for Spends Data in Android settings.'
+        : enabled
+        ? 'Reminders are scheduled on this phone.'
+        : 'Reminders are turned off on this phone.'
+    );
+    setBusy(false);
+  };
+
+  return (
+    <Row
+      title="Phone reminders (Android)"
+      subtitle={
+        settings.enabled
+          ? 'Scheduled by Android itself, so they arrive with the app closed.'
+          : 'Turn on Notifications above to schedule reminders on this phone.'
+      }
+    >
+      <div className="flex flex-col items-end gap-1">
+        <button
+          type="button"
+          disabled={busy || !settings.enabled}
+          onClick={() => void schedule(true)}
+          className="rounded-lg bg-indigo-600 px-3 py-1.5 text-[11px] font-bold text-white disabled:opacity-50"
+        >
+          {busy ? 'Working…' : 'Re-schedule'}
+        </button>
+        {message && <span className="max-w-[16rem] text-right text-[10px] text-slate-500">{message}</span>}
+      </div>
+    </Row>
+  );
+};
+
 export const SettingsCard: React.FC<SettingsCardProps> = ({
   storage,
   notifications,
@@ -96,6 +231,8 @@ export const SettingsCard: React.FC<SettingsCardProps> = ({
   onPersistStorage,
   onShareSummary,
   onResetAll,
+  nativeApp,
+  onScheduleNativeReminders,
 }) => {
   const fileRef = useRef<HTMLInputElement>(null);
   const [importMessage, setImportMessage] = useState<string | null>(null);
@@ -193,6 +330,12 @@ export const SettingsCard: React.FC<SettingsCardProps> = ({
               onClick={() => onChange({ ...settings, reportReminder: !settings.reportReminder })}
             />
           </Row>
+
+          {nativeApp ? (
+            <NativeReminderRow settings={settings} onSchedule={onScheduleNativeReminders} />
+          ) : (
+            <WebPushRow settings={settings} />
+          )}
 
           <Row title="Streak celebration" subtitle="A nudge that keeps your logging streak alive">
             <Toggle

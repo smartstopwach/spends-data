@@ -13,3 +13,8 @@ id = "REPLACE_WITH_KV_NAMESPACE_ID"
 
 # Secrets (set with `wrangler secret put NAME`):
 #   EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, EMAILJS_PUBLIC_KEY, WORKER_TOKEN (optional)
+#
+# Web Push (background notifications for the installed app). Generate once, see functions/README.md:
+#   VAPID_PUBLIC_KEY   base64url uncompressed P-256 point (also served by GET /push/key)
+#   VAPID_PRIVATE_KEY  base64url "d" value. Keep secret.
+#   VAPID_SUBJECT      contact, e.g. mailto:you@example.com
