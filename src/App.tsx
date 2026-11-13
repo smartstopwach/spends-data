@@ -35,7 +35,6 @@ import {
 import { PwaBanners } from './components/PwaBanners';
 import { TrendCard } from './components/TrendCard';
 import { useEmailReport } from './hooks/useEmailReport';
-import { APP_VERSION } from './version';
 import { useSpendsStore } from './hooks/useSpendsStore';
 import { SpendCategory, TransactionType } from './types';
 import { buildReport, resolveReportRange } from './utils/weeklyReport';
@@ -67,6 +66,7 @@ export const App: React.FC = () => {
     loadDemoData,
     clearAllData,
     importBackupData,
+    setBudgetForMonth,
   } = useSpendsStore();
 
   const [view, setView] = useState<View>(readHashView);
@@ -367,9 +367,6 @@ export const App: React.FC = () => {
                   <span>
                     {periodInfo.label} · <span className="num">{periodTransactions.length}</span>{' '}
                     {periodTransactions.length === 1 ? 'entry' : 'entries'}
-                  </span>
-                  <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-500">
-                    v{APP_VERSION}
                   </span>
                   <span className="text-slate-300">·</span>
                   <span>saved in this browser</span>
@@ -688,6 +685,9 @@ export const App: React.FC = () => {
               installed={pwa.installed}
               canInstall={pwa.canInstall}
               onInstall={pwa.install}
+              installHint={pwa.manualSteps}
+              monthlyBudget={periodAnalytics.effectiveBudget}
+              onSaveBudget={(amount) => setBudgetForMonth(period.anchor, amount)}
               notifications={{
                 settings: notifications.settings,
                 permission: notifications.permission,
@@ -756,9 +756,7 @@ export const App: React.FC = () => {
         )}
 
         <footer className="mt-8 flex flex-wrap items-center justify-between gap-2 border-t border-slate-200/80 pt-4 text-[11px] font-medium text-slate-400">
-          <span>
-            Spends Data v{APP_VERSION} · installable app · offline-first
-          </span>
+          <span>Spends Data · installable app · offline-first</span>
           <span className="num">
             {transactions.length} total records · balance{' '}
             {walletSummary.balance >= 0 ? 'positive' : 'negative'}

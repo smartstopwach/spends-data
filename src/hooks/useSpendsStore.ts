@@ -89,7 +89,9 @@ export function useSpendsStore() {
     } catch {
       // ignore
     }
-    return { default: 8500 };
+    // No default budget: the pace line and usage bar only appear once the user
+    // sets their own limit (Settings → Monthly budget).
+    return {};
   });
 
   const [period, setPeriodState] = useState<PeriodState>(() => currentPeriod('month'));
@@ -193,11 +195,12 @@ export function useSpendsStore() {
 
   const setBudgetForMonth = useCallback((monthKey: string, amount: number) => {
     const clean = Math.max(0, Math.round(amount));
-    setBudgets((prev) => ({
-      ...prev,
-      [monthKey]: clean,
-      default: clean || prev.default,
-    }));
+    setBudgets((prev) => {
+      const next = { ...prev, [monthKey]: clean };
+      // Keep `default` in sync so a cleared budget stays cleared.
+      next.default = clean;
+      return next;
+    });
   }, []);
 
   const importBackupData = useCallback((rawJson: string): { ok: boolean; message: string } => {
@@ -379,6 +382,8 @@ export function useSpendsStore() {
 
     // Effective reference limit: user's monthly budget if > 0, else monthly income
     const effectiveLimit = configuredBudget > 0 ? configuredBudget : income;
+    // The user's own limit (0 = not set) — drives the inline budget editor.
+    const effectiveBudget = configuredBudget;
     const budgetRemaining = Math.round((effectiveLimit - spend) * 100) / 100;
     const safeDailyAllowance =
       remainingDays > 0 && budgetRemaining > 0 ? Math.round(budgetRemaining / remainingDays) : 0;
@@ -456,6 +461,7 @@ export function useSpendsStore() {
       categoryBreakdown,
       dailyAvgSpend,
       configuredBudget,
+      effectiveBudget,
       effectiveLimit,
       budgetRemaining,
       safeDailyAllowance,

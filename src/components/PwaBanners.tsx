@@ -20,6 +20,7 @@ export const PwaBanners: React.FC = () => {
     try {
       const seen = window.localStorage.getItem('spends_data_seen_version');
       if (seen !== APP_VERSION) setShowWhatsNew(true);
+      window.localStorage.setItem('spends_data_seen_version', APP_VERSION);
     } catch {
       // ignore
     }
@@ -114,7 +115,7 @@ export const PwaBanners: React.FC = () => {
             <div className="bg-[linear-gradient(135deg,#1e1b4b,#4338ca)] px-5 py-4 text-white">
               <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-indigo-200">
                 <Sparkles className="h-3 w-3" />
-                What&apos;s new · v{APP_VERSION}
+                What&apos;s new
               </p>
               <h2 className="mt-1.5 text-base font-extrabold tracking-tight">{entry.title}</h2>
               <p className="mt-1 text-[11px] font-medium text-indigo-200">{entry.date}</p>

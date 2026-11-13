@@ -437,7 +437,8 @@ export const TrendCard: React.FC<TrendCardProps> = React.memo(
           </svg>
         </div>
 
-        {/* Budget strip */}
+        {/* Budget strip — only when the user set a limit themselves (no default). */}
+        {budget > 0 && (
         <div className="mt-4 rounded-xl border border-slate-200/80 bg-slate-50/70 p-3.5">
           <div className="flex items-center justify-between text-[11px] font-semibold text-slate-600">
             <span>
@@ -483,6 +484,7 @@ export const TrendCard: React.FC<TrendCardProps> = React.memo(
             )}
           </div>
         </div>
+        )}
       </section>
     );
   }

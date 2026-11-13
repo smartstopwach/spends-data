@@ -7,11 +7,28 @@ interface BeforeInstallPromptEvent extends Event {
 
 const INSTALL_DISMISSED_KEY = 'spends_data_install_dismissed';
 
+export type InstallPlatform = 'prompt' | 'ios' | 'android' | 'desktop' | 'installed';
+
+const detectPlatform = (): InstallPlatform => {
+  if (typeof navigator === 'undefined') return 'desktop';
+  const ua = navigator.userAgent || '';
+  if (/iPad|iPhone|iPod/.test(ua) || (/Macintosh/.test(ua) && 'ontouchend' in document)) return 'ios';
+  if (/Android/.test(ua)) return 'android';
+  return 'desktop';
+};
+
 export interface PwaState {
   canInstall: boolean;
   installed: boolean;
   updateReady: boolean;
+  /** True when the browser gave us a real install prompt we can fire. */
+  canNativePrompt: boolean;
+  platform: InstallPlatform;
+  /** Always callable: fires the native prompt, else shows manual instructions. */
   install: () => Promise<void>;
+  /** Set when the native prompt was unavailable and we must explain the manual steps. */
+  manualSteps: string | null;
+  clearManualSteps: () => void;
   applyUpdate: () => void;
   dismissInstall: () => void;
   dismissUpdate: () => void;
@@ -21,6 +38,8 @@ export function usePwa(): PwaState {
   const [promptEvent, setPromptEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const [installed, setInstalled] = useState<boolean>(false);
   const [updateReady, setUpdateReady] = useState(false);
+  const [platform, setPlatform] = useState<InstallPlatform>('desktop');
+  const [manualSteps, setManualSteps] = useState<string | null>(null);
   const [dismissed, setDismissed] = useState<boolean>(() => {
     try {
       return window.localStorage.getItem(INSTALL_DISMISSED_KEY) === '1';
@@ -34,6 +53,7 @@ export function usePwa(): PwaState {
       window.matchMedia?.('(display-mode: standalone)').matches ||
       (window.navigator as unknown as { standalone?: boolean }).standalone === true;
     setInstalled(Boolean(standalone));
+    setPlatform(standalone ? 'installed' : detectPlatform());
 
     const onPrompt = (event: Event) => {
       event.preventDefault();
@@ -98,12 +118,28 @@ export function usePwa(): PwaState {
   }, []);
 
   const install = useCallback(async () => {
-    if (!promptEvent) return;
-    await promptEvent.prompt();
-    const choice = await promptEvent.userChoice;
-    if (choice.outcome === 'accepted') setInstalled(true);
-    setPromptEvent(null);
-  }, [promptEvent]);
+    if (promptEvent) {
+      try {
+        await promptEvent.prompt();
+        const choice = await promptEvent.userChoice;
+        if (choice.outcome === 'accepted') setInstalled(true);
+      } catch {
+        // fall through to the manual instructions below
+      }
+      setPromptEvent(null);
+      return;
+    }
+
+    // No native prompt (iOS Safari, Firefox, in-app browsers, already-dismissed…):
+    // never dead-end the tap — explain the exact steps for this browser.
+    const steps =
+      platform === 'ios'
+        ? 'Tap the Share button in Safari, then “Add to Home Screen”.'
+        : platform === 'android'
+        ? 'Open the browser menu (⋮) and tap “Install app” or “Add to Home screen”.'
+        : 'Click the install icon in the address bar, or open the browser menu and choose “Install”.';
+    setManualSteps(steps);
+  }, [promptEvent, platform]);
 
   const dismissInstall = useCallback(() => {
     setDismissed(true);
@@ -122,7 +158,12 @@ export function usePwa(): PwaState {
   }, []);
 
   return {
+    // Banner still only appears when the browser offered a real prompt.
     canInstall: Boolean(promptEvent) && !dismissed,
+    canNativePrompt: Boolean(promptEvent),
+    platform,
+    manualSteps,
+    clearManualSteps: () => setManualSteps(null),
     installed,
     updateReady,
     install,
