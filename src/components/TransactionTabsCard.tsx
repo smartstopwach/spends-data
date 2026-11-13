@@ -236,16 +236,16 @@ export const TransactionTabsCard: React.FC<TransactionTabsCardProps> = React.mem
                   aria-selected={active}
                   type="button"
                   onClick={() => handleTab(t.id)}
-                  className={`flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 text-xs font-semibold transition ${
+                  className={`relative flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 ${
                     active
-                      ? 'bg-white text-slate-900 shadow-sm ring-1 ring-slate-200'
+                      ? 'bg-white text-indigo-700 shadow-sm ring-1 ring-indigo-200'
                       : 'text-slate-500 hover:bg-white/70 hover:text-slate-800'
                   }`}
                 >
                   <span>{t.label}</span>
                   <span
                     className={`num rounded px-1 py-px text-[10px] font-bold ${
-                      active ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-200/70 text-slate-500'
+                      active ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-200/70 text-slate-500'
                     }`}
                   >
                     {counts[t.id]}
@@ -260,10 +260,10 @@ export const TransactionTabsCard: React.FC<TransactionTabsCardProps> = React.mem
               type="button"
               onClick={() => setGrouped((g) => !g)}
               title="Toggle day-wise grouping"
-              className={`flex items-center gap-1 rounded-lg px-2 py-1.5 text-[11px] font-semibold transition ${
+              className={`flex h-8 items-center gap-1 rounded-lg px-2 text-[11px] font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 ${
                 grouped
-                  ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-slate-200'
-                  : 'text-slate-500 hover:bg-white hover:text-slate-800'
+                  ? 'bg-white text-indigo-700 shadow-sm ring-1 ring-indigo-200'
+                  : 'text-slate-400 hover:bg-white hover:text-slate-700'
               }`}
             >
               {grouped ? <CalendarDays className="h-3 w-3" /> : <List className="h-3 w-3" />}
@@ -273,7 +273,7 @@ export const TransactionTabsCard: React.FC<TransactionTabsCardProps> = React.mem
             <button
               type="button"
               onClick={() => setSortDesc((s) => !s)}
-              className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-[11px] font-semibold text-slate-500 transition hover:bg-white hover:text-slate-800"
+              className="flex h-8 items-center gap-1 rounded-lg px-2 text-[11px] font-semibold text-slate-400 transition hover:bg-white hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
               title="Toggle sort order"
             >
               <ArrowUpDown className="h-3 w-3" />

@@ -274,7 +274,7 @@ export const App: React.FC = () => {
                         exportTransactionsToCSV(transactions);
                         setMenuOpen(false);
                       }}
-                      className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12px] font-medium text-slate-700 transition hover:bg-slate-50 disabled:opacity-40"
+                      className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[12px] font-medium text-slate-700 transition hover:bg-slate-50 focus-visible:bg-slate-50 focus-visible:outline-none disabled:opacity-40"
                     >
                       <Download className="h-3.5 w-3.5 text-indigo-500" />
                       Export CSV
@@ -312,7 +312,7 @@ export const App: React.FC = () => {
                         clearAllData();
                         setMenuOpen(false);
                       }}
-                      className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12px] font-medium text-rose-600 transition hover:bg-rose-50 disabled:opacity-40"
+                      className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[12px] font-medium text-rose-600 transition hover:bg-rose-50 focus-visible:bg-rose-50 focus-visible:outline-none disabled:opacity-40"
                     >
                       <RotateCcw className="h-3.5 w-3.5" />
                       Reset all data
@@ -418,6 +418,7 @@ export const App: React.FC = () => {
               spendCount={periodAnalytics.spendCount}
               dailyAvgSpend={periodAnalytics.dailyAvgSpend}
               safeDailyAllowance={periodAnalytics.safeDailyAllowance}
+              budgetIsSet={periodAnalytics.budgetIsSet}
               onQuickAdd={handleQuickAdd}
             />
 

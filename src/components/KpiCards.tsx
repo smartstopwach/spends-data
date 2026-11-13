@@ -10,6 +10,7 @@ interface KpiCardsProps {
   spendCount: number;
   dailyAvgSpend: number;
   safeDailyAllowance: number;
+  budgetIsSet: boolean;
   onQuickAdd: (mode: 'income' | 'spend') => void;
 }
 
@@ -43,6 +44,7 @@ export const KpiCards: React.FC<KpiCardsProps> = React.memo(
     spendCount,
     dailyAvgSpend,
     safeDailyAllowance,
+    budgetIsSet,
     onQuickAdd,
   }) => (
     <section aria-label="Key metrics" className="grid grid-cols-2 gap-2.5 sm:gap-4 xl:grid-cols-4">
@@ -141,12 +143,16 @@ export const KpiCards: React.FC<KpiCardsProps> = React.memo(
         </p>
         <div className="mt-3 flex items-center justify-between gap-2">
           <span className="text-[11px] font-medium text-slate-500">
-            Safe: {formatINR(safeDailyAllowance)}/day
+            {budgetIsSet ? `Safe: ${formatINR(safeDailyAllowance)}/day` : 'Budget not set'}
           </span>
-          <TrendPill
-            label={safeDailyAllowance >= dailyAvgSpend ? 'On track' : 'Tight'}
-            tone={safeDailyAllowance >= dailyAvgSpend ? 'up' : 'down'}
-          />
+          {budgetIsSet ? (
+            <TrendPill
+              label={safeDailyAllowance >= dailyAvgSpend ? 'On track' : 'Tight'}
+              tone={safeDailyAllowance >= dailyAvgSpend ? 'up' : 'down'}
+            />
+          ) : (
+            <TrendPill label="Set in Settings" tone="flat" />
+          )}
         </div>
       </article>
     </section>

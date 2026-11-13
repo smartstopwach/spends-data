@@ -39,3 +39,16 @@ describe('Full App Render Smoke Test', () => {
     expect(html).toContain('Money in');
   });
 });
+
+describe('Active state & dummy data hygiene', () => {
+  it('never renders a hard-coded budget', () => {
+    const html = renderToString(React.createElement(App));
+    expect(html).not.toContain('8,500');
+    expect(html).not.toContain('8500');
+  });
+
+  it('marks the active navigation item for assistive tech', () => {
+    const html = renderToString(React.createElement(App));
+    expect(html).toContain('aria-current');
+  });
+});

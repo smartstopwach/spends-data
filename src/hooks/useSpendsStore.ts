@@ -83,8 +83,26 @@ export function useSpendsStore() {
     try {
       const saved = localStorage.getItem(BUDGET_STORAGE_KEY);
       if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed && typeof parsed === 'object') return parsed;
+        const parsed = JSON.parse(saved) as Record<string, unknown>;
+        if (parsed && typeof parsed === 'object') {
+          // Old builds shipped a hard-coded 8500 default that leaked into every
+          // browser. Drop it once, keep only budgets the user actually chose.
+          const staleDefault = Number(parsed.default);
+          if (staleDefault === 8500) {
+            const months = Object.fromEntries(
+              Object.entries(parsed).filter(
+                ([key, value]) => key !== 'default' && Number(value) !== 8500
+              )
+            ) as MonthlyBudgets;
+            const hasMonth = Object.keys(months).length > 0;
+            localStorage.setItem(
+              BUDGET_STORAGE_KEY,
+              JSON.stringify(hasMonth ? { ...months, default: 0 } : {})
+            );
+            return hasMonth ? { ...months, default: 0 } : {};
+          }
+          return parsed as MonthlyBudgets;
+        }
       }
     } catch {
       // ignore
@@ -380,14 +398,19 @@ export function useSpendsStore() {
         ? budgets[period.anchor] ?? budgets.default ?? 0
         : budgets[activeMonthKey] ?? budgets.default ?? 0;
 
-    // Effective reference limit: user's monthly budget if > 0, else monthly income
-    const effectiveLimit = configuredBudget > 0 ? configuredBudget : income;
-    // The user's own limit (0 = not set) — drives the inline budget editor.
+    // Only a budget the user typed counts. No fallback to income, no default —
+    // with nothing set the pace line, usage bar and "over budget" copy stay hidden.
+    const effectiveLimit = configuredBudget;
     const effectiveBudget = configuredBudget;
-    const budgetRemaining = Math.round((effectiveLimit - spend) * 100) / 100;
+    const budgetIsSet = configuredBudget > 0 && periodInfo.mode !== 'all';
+    const budgetRemaining = budgetIsSet ? Math.round((effectiveLimit - spend) * 100) / 100 : 0;
     const safeDailyAllowance =
-      remainingDays > 0 && budgetRemaining > 0 ? Math.round(budgetRemaining / remainingDays) : 0;
-    const budgetUsedPercent = effectiveLimit > 0 ? Math.min(999, Math.round((spend / effectiveLimit) * 100)) : 0;
+      budgetIsSet && remainingDays > 0 && budgetRemaining > 0
+        ? Math.round(budgetRemaining / remainingDays)
+        : 0;
+    const budgetUsedPercent = budgetIsSet
+      ? Math.min(999, Math.round((spend / effectiveLimit) * 100))
+      : 0;
 
     // Daily series for the active period (week → 7 days, month → days of month)
     const dailyMap: Record<number, { spend: number; income: number; savings: number }> = {};
@@ -463,6 +486,7 @@ export function useSpendsStore() {
       configuredBudget,
       effectiveBudget,
       effectiveLimit,
+      budgetIsSet,
       budgetRemaining,
       safeDailyAllowance,
       budgetUsedPercent,

@@ -82,7 +82,7 @@ const Toggle: React.FC<{ on: boolean; onClick: () => void; label: string }> = ({
       vibrate();
       onClick();
     }}
-    className={`relative h-5 w-9 rounded-full transition ${on ? 'bg-indigo-600' : 'bg-slate-300'}`}
+    className={`relative h-5 w-9 rounded-full transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 ${on ? 'bg-indigo-600' : 'bg-slate-300'}`}
   >
     <span
       className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${

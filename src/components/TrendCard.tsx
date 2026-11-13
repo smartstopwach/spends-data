@@ -200,8 +200,9 @@ export const TrendCard: React.FC<TrendCardProps> = React.memo(
             <button
               type="button"
               onClick={() => setSeries('spend')}
-              className={`flex h-8 shrink-0 items-center gap-1 whitespace-nowrap rounded-md px-2.5 text-[11px] font-semibold transition ${
-                series === 'spend' ? activeTone : 'text-slate-500 hover:text-slate-800'
+              aria-pressed={series === 'spend'}
+              className={`flex h-8 shrink-0 items-center gap-1 whitespace-nowrap rounded-md px-2.5 text-[11px] font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 ${
+                series === 'spend' ? activeTone : 'text-slate-400 hover:text-slate-700'
               }`}
             >
               <ArrowUpRight className="h-3 w-3" />
@@ -210,8 +211,9 @@ export const TrendCard: React.FC<TrendCardProps> = React.memo(
             <button
               type="button"
               onClick={() => setSeries('income')}
-              className={`flex h-8 shrink-0 items-center gap-1 whitespace-nowrap rounded-md px-2.5 text-[11px] font-semibold transition ${
-                series === 'income' ? activeTone : 'text-slate-500 hover:text-slate-800'
+              aria-pressed={series === 'income'}
+              className={`flex h-8 shrink-0 items-center gap-1 whitespace-nowrap rounded-md px-2.5 text-[11px] font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 ${
+                series === 'income' ? activeTone : 'text-slate-400 hover:text-slate-700'
               }`}
             >
               <ArrowDownLeft className="h-3 w-3" />
@@ -220,8 +222,9 @@ export const TrendCard: React.FC<TrendCardProps> = React.memo(
             <button
               type="button"
               onClick={() => setSeries('savings')}
-              className={`flex h-8 shrink-0 items-center gap-1 whitespace-nowrap rounded-md px-2.5 text-[11px] font-semibold transition ${
-                series === 'savings' ? activeTone : 'text-slate-500 hover:text-slate-800'
+              aria-pressed={series === 'savings'}
+              className={`flex h-8 shrink-0 items-center gap-1 whitespace-nowrap rounded-md px-2.5 text-[11px] font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 ${
+                series === 'savings' ? activeTone : 'text-slate-400 hover:text-slate-700'
               }`}
             >
               <PiggyBank className="h-3 w-3" />

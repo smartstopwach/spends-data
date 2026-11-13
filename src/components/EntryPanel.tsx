@@ -123,10 +123,11 @@ export const EntryPanel: React.FC<EntryPanelProps> = React.memo(
             <button
               type="button"
               onClick={() => onChangeType('spend')}
-              className={`flex h-10 items-center justify-center gap-1.5 rounded-lg text-[12px] font-semibold transition ${
+              aria-pressed={!isIncome}
+              className={`flex h-10 items-center justify-center gap-1.5 rounded-lg text-[12px] font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 ${
                 !isIncome
-                  ? 'bg-white text-rose-600 shadow-sm ring-1 ring-slate-200'
-                  : 'text-slate-500 hover:text-slate-800'
+                  ? 'bg-white text-rose-600 shadow-sm ring-1 ring-rose-200'
+                  : 'text-slate-400 hover:text-slate-700'
               }`}
             >
               <ArrowUpRight className="h-3.5 w-3.5" />
@@ -135,10 +136,11 @@ export const EntryPanel: React.FC<EntryPanelProps> = React.memo(
             <button
               type="button"
               onClick={() => onChangeType('income')}
-              className={`flex h-10 items-center justify-center gap-1.5 rounded-lg text-[12px] font-semibold transition ${
+              aria-pressed={isIncome}
+              className={`flex h-10 items-center justify-center gap-1.5 rounded-lg text-[12px] font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 ${
                 isIncome
-                  ? 'bg-white text-emerald-600 shadow-sm ring-1 ring-slate-200'
-                  : 'text-slate-500 hover:text-slate-800'
+                  ? 'bg-white text-emerald-600 shadow-sm ring-1 ring-emerald-200'
+                  : 'text-slate-400 hover:text-slate-700'
               }`}
             >
               <ArrowDownLeft className="h-3.5 w-3.5" />
@@ -226,7 +228,7 @@ export const EntryPanel: React.FC<EntryPanelProps> = React.memo(
                     }
                     className={`flex min-h-[42px] items-center gap-2 rounded-lg border px-2.5 py-2 text-left transition ${
                       active
-                        ? 'border-indigo-300 bg-indigo-50/70 ring-1 ring-indigo-200'
+                        ? 'border-indigo-400 bg-indigo-50 ring-2 ring-indigo-200'
                         : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
                     }`}
                   >
@@ -327,10 +329,11 @@ export const EntryPanel: React.FC<EntryPanelProps> = React.memo(
                     key={m.id}
                     type="button"
                     onClick={() => setPaymentMode(m.id)}
-                    className={`h-8 rounded-md text-[11px] font-semibold transition ${
+                    aria-pressed={paymentMode === m.id}
+                    className={`h-8 rounded-md text-[11px] font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 ${
                       paymentMode === m.id
-                        ? 'bg-white text-slate-900 shadow-sm ring-1 ring-slate-200'
-                        : 'text-slate-500 hover:text-slate-800'
+                        ? 'bg-white text-indigo-700 shadow-sm ring-1 ring-indigo-200'
+                        : 'text-slate-400 hover:text-slate-700'
                     }`}
                   >
                     {m.label}

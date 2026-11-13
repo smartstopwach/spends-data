@@ -37,8 +37,8 @@ export const AppNav: React.FC<AppNavProps> = ({ view, onNavigate, counts }) => {
                 key={item.id}
                 type="button"
                 onClick={() => onNavigate(item.id)}
-                aria-current={active}
-                className={`relative flex min-w-0 flex-1 flex-col items-center gap-0.5 px-0.5 pb-2 pt-2 text-[9.5px] font-semibold leading-none transition ${
+                aria-current={active ? 'page' : undefined}
+                className={`relative flex min-w-0 flex-1 flex-col items-center gap-0.5 px-0.5 pb-2 pt-2 text-[9.5px] font-semibold leading-none transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-400 ${
                   active ? 'text-indigo-600' : 'text-slate-400'
                 }`}
               >

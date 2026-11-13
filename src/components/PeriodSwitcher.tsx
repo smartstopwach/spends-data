@@ -32,7 +32,7 @@ export const PeriodSwitcher: React.FC<PeriodSwitcherProps> = React.memo(
         <div
           role="tablist"
           aria-label="Period"
-          className="flex items-center gap-0.5 rounded-lg border border-slate-200 bg-white p-0.5 shadow-sm"
+          className="flex items-center gap-0.5 rounded-lg bg-slate-100 p-0.5"
         >
           {MODES.map((m) => {
             const active = period.mode === m.id;
@@ -44,10 +44,10 @@ export const PeriodSwitcher: React.FC<PeriodSwitcherProps> = React.memo(
                 aria-selected={active}
                 type="button"
                 onClick={() => onChange(currentPeriod(m.id))}
-                className={`flex items-center gap-1 rounded-md px-1.5 py-1 text-[11px] font-semibold transition ${
+                className={`flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 ${
                   active
-                    ? 'bg-slate-900 text-white'
-                    : 'text-slate-500 hover:bg-slate-100 hover:text-slate-800'
+                    ? 'bg-white text-indigo-700 shadow-sm ring-1 ring-slate-200'
+                    : 'text-slate-500 hover:text-slate-800'
                 }`}
               >
                 {!compact && <Icon className="h-3 w-3" />}
@@ -64,7 +64,7 @@ export const PeriodSwitcher: React.FC<PeriodSwitcherProps> = React.memo(
               type="button"
               onClick={() => onChange(shiftPeriod(state, -1))}
               aria-label={`Previous ${period.mode}`}
-              className="rounded-md p-1 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
+              className="flex h-7 w-7 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
             >
               <ChevronLeft className="h-3.5 w-3.5" />
             </button>
@@ -79,7 +79,7 @@ export const PeriodSwitcher: React.FC<PeriodSwitcherProps> = React.memo(
               onClick={() => onChange(shiftPeriod(state, 1))}
               disabled={!period.canGoNext}
               aria-label={`Next ${period.mode}`}
-              className="rounded-md p-1 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-30"
+              className="flex h-7 w-7 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 disabled:cursor-not-allowed disabled:opacity-30"
             >
               <ChevronRight className="h-3.5 w-3.5" />
             </button>
