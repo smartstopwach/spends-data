@@ -7,6 +7,7 @@ import {
   HeartHandshake,
   Home,
   MoreHorizontal,
+  PiggyBank,
   RotateCcw,
   Shirt,
   ShoppingBag,
@@ -46,6 +47,8 @@ export const CategoryIcon: React.FC<CategoryIconProps> = ({ name, className = 'w
       return <RotateCcw className={className} />;
     case 'Wallet':
       return <Wallet className={className} />;
+    case 'PiggyBank':
+      return <PiggyBank className={className} />;
     default:
       return <MoreHorizontal className={className} />;
   }

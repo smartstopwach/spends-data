@@ -34,6 +34,8 @@ export interface DailySpendPoint {
   date: string;
   spend: number;
   income: number;
+  /** Spend rows in the savings category — money set aside, part of outflows. */
+  savings: number;
   isToday: boolean;
   isFuture: boolean;
 }
@@ -362,9 +364,9 @@ export function useSpendsStore() {
     const budgetUsedPercent = effectiveLimit > 0 ? Math.min(999, Math.round((spend / effectiveLimit) * 100)) : 0;
 
     // Daily series for the active period (week → 7 days, month → days of month)
-    const dailyMap: Record<number, { spend: number; income: number }> = {};
+    const dailyMap: Record<number, { spend: number; income: number; savings: number }> = {};
     for (let d = 1; d <= daysInMonth; d++) {
-      dailyMap[d] = { spend: 0, income: 0 };
+      dailyMap[d] = { spend: 0, income: 0, savings: 0 };
     }
 
     const chartTx = periodTransactions;
@@ -372,8 +374,12 @@ export function useSpendsStore() {
     for (const tx of chartTx) {
       const dayNum = Number(tx.date.split('-')[2]);
       if (dailyMap[dayNum]) {
-        if (tx.type === 'spend') dailyMap[dayNum].spend += tx.amount;
-        else dailyMap[dayNum].income += tx.amount;
+        if (tx.type === 'spend') {
+          dailyMap[dayNum].spend += tx.amount;
+          if (tx.category === 'savings') dailyMap[dayNum].savings += tx.amount;
+        } else {
+          dailyMap[dayNum].income += tx.amount;
+        }
       }
     }
 
@@ -390,6 +396,7 @@ export function useSpendsStore() {
           date: dateIso,
           spend: Math.round((bucket?.spend ?? 0) * 100) / 100,
           income: Math.round((bucket?.income ?? 0) * 100) / 100,
+          savings: Math.round((bucket?.savings ?? 0) * 100) / 100,
           isToday: dateIso === todayStr,
           isFuture: dateIso > todayStr,
         });
@@ -402,14 +409,23 @@ export function useSpendsStore() {
           date: dateIso,
           spend: Math.round(dailyMap[d].spend * 100) / 100,
           income: Math.round(dailyMap[d].income * 100) / 100,
+          savings: Math.round(dailyMap[d].savings * 100) / 100,
           isToday: dateIso === todayStr,
           isFuture: dateIso > todayStr,
         });
       }
     }
 
+    const savingsMoved =
+      Math.round(
+        periodTransactions
+          .filter((tx) => tx.type === 'spend' && tx.category === 'savings')
+          .reduce((sum, tx) => sum + tx.amount, 0) * 100
+      ) / 100;
+
     return {
       periodInfo,
+      savingsMoved,
       income: Math.round(income * 100) / 100,
       homeOnlyIncome: Math.round(homeOnlyIncome * 100) / 100,
       spend: Math.round(spend * 100) / 100,

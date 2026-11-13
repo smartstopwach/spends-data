@@ -210,7 +210,7 @@ export const EntryPanel: React.FC<EntryPanelProps> = React.memo(
           {/* Category */}
           <div>
             <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
-              {isIncome ? 'Source' : 'Category'}
+              {isIncome ? 'Source' : 'Category (savings counts as a spend)'}
             </p>
             <div className="grid grid-cols-2 gap-1.5">
               {categories.map((c) => {

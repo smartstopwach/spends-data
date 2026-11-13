@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createSampleTransactions } from '../constants';
+import { ALL_CATEGORY_MAP, createSampleTransactions } from '../constants';
 import {
   evaluateAmountExpression,
   formatDisplayDate,
@@ -97,5 +97,19 @@ describe('shiftISODate (daily date handling)', () => {
     const now = new Date(2026, 10, 13, 23, 59);
     expect(getTodayISO(now)).toBe('2026-11-13');
     expect(shiftISODate(getTodayISO(now), -1)).toBe('2026-11-12');
+  });
+});
+
+describe('Savings category (money set aside)', () => {
+  it('is part of spend totals, not income', () => {
+    const txns = createSampleTransactions(new Date(2026, 10, 13));
+    expect(txns.every((t) => t.type !== 'income' || t.category !== 'savings')).toBe(true);
+  });
+
+  it('is registered as a spend category with an icon', () => {
+    const meta = ALL_CATEGORY_MAP.savings;
+    expect(meta).toBeTruthy();
+    expect(meta.label).toContain('Savings');
+    expect(meta.iconName).toBe('PiggyBank');
   });
 });

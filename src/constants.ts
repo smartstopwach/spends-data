@@ -72,6 +72,16 @@ export const SPEND_CATEGORIES: CategoryMeta[] = [
     iconName: 'Shirt',
   },
   {
+    id: 'savings',
+    label: 'Savings & Investments',
+    sublabel: 'Money set aside, SIP, FD, emergency fund',
+    color: '#14b8a6',
+    bgClass: 'bg-teal-50',
+    textClass: 'text-teal-700',
+    ringClass: 'ring-teal-200',
+    iconName: 'PiggyBank',
+  },
+  {
     id: 'other',
     label: 'Other Spend',
     sublabel: 'Miscellaneous',

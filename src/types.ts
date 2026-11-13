@@ -8,6 +8,7 @@ export type SpendCategory =
   | 'recharge'
   | 'groceries'
   | 'shopping'
+  | 'savings'
   | 'other';
 
 export type IncomeSource =

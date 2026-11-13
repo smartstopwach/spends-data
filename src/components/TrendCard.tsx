@@ -7,6 +7,7 @@ type SeriesKey = 'spend' | 'income' | 'savings';
 
 interface TrendCardProps {
   dailySeries: DailySpendPoint[];
+  savingsMoved?: number;
   spend: number;
   budget: number;
   budgetUsedPercent: number;
@@ -61,6 +62,7 @@ function smoothPath(points: Array<[number, number]>, minY = 0, maxY = Infinity):
 export const TrendCard: React.FC<TrendCardProps> = React.memo(
   ({
     dailySeries,
+    savingsMoved = 0,
     spend,
     budget,
     budgetUsedPercent,
@@ -84,7 +86,8 @@ export const TrendCard: React.FC<TrendCardProps> = React.memo(
       const valueOf = (point: DailySpendPoint): number => {
         if (series === 'spend') return point.spend;
         if (series === 'income') return point.income;
-        return Math.max(0, point.income - point.spend);
+        // Savings is money moved out of the wallet → a spend category.
+        return point.savings ?? 0;
       };
 
       for (const point of dailySeries) {
@@ -146,7 +149,7 @@ export const TrendCard: React.FC<TrendCardProps> = React.memo(
       if (!point) return 0;
       if (series === 'spend') return point.spend;
       if (series === 'income') return point.income;
-      return Math.max(0, point.income - point.spend);
+      return point.savings ?? 0;
     };
     const hoverValue = valueOfPoint(hovered);
 
@@ -184,6 +187,12 @@ export const TrendCard: React.FC<TrendCardProps> = React.memo(
             <h2 className="text-sm font-semibold text-slate-900">Monthly Trend</h2>
             <p className="mt-0.5 text-xs font-medium text-slate-500">
               {monthLabel} · {activeDays} active {activeDays === 1 ? 'day' : 'days'}
+              {savingsMoved > 0 && (
+                <>
+                  {' '}
+                  · <span className="font-semibold text-teal-600">{formatINR(savingsMoved)} saved</span>
+                </>
+              )}
             </p>
           </div>
 
@@ -239,7 +248,11 @@ export const TrendCard: React.FC<TrendCardProps> = React.memo(
               )}
             </span>
             <span>
-              {series === 'spend' ? 'total out' : series === 'income' ? 'total in' : 'net saved'}
+              {series === 'spend'
+                ? 'total out'
+                : series === 'income'
+                ? 'total in'
+                : 'put aside'}
             </span>
           </span>
           {hasData && (
@@ -366,7 +379,9 @@ export const TrendCard: React.FC<TrendCardProps> = React.memo(
                 textAnchor="middle"
                 className="fill-slate-300 text-[11px] font-semibold"
               >
-                No {series === 'spend' ? 'spends' : series === 'income' ? 'money in' : 'savings'} recorded yet
+                No{' '}
+                {series === 'spend' ? 'spends' : series === 'income' ? 'money in' : 'savings'}{' '}
+                recorded yet
               </text>
             )}
 

@@ -421,6 +421,7 @@ export const App: React.FC = () => {
               <div className="order-2 flex flex-col gap-4 lg:order-1 lg:col-span-8">
                 <TrendCard
                   dailySeries={periodAnalytics.dailySeries}
+                  savingsMoved={periodAnalytics.savingsMoved}
                   spend={periodAnalytics.spend}
                   budget={periodAnalytics.effectiveLimit}
                   budgetUsedPercent={periodAnalytics.budgetUsedPercent}
