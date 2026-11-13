@@ -15,7 +15,7 @@ import {
 import { CategoryPanel } from './components/CategoryPanel';
 import { EntryPanel } from './components/EntryPanel';
 import { KpiCards } from './components/KpiCards';
-import { LedgerTabsCard } from './components/LedgerTabsCard';
+import { TransactionTabsCard } from './components/TransactionTabsCard';
 import { RecentPreview } from './components/RecentPreview';
 import { ReportSettingsCard } from './components/ReportSettingsCard';
 import { TrendCard } from './components/TrendCard';
@@ -31,12 +31,13 @@ import {
   shiftMonthKey,
 } from './utils/mathAndFormat';
 
-type View = 'home' | 'ledger' | 'reports';
+type View = 'home' | 'transactions' | 'reports';
 
 const readHashView = (): View => {
   if (typeof window === 'undefined') return 'home';
   const hash = window.location.hash.replace('#', '');
-  return hash === 'ledger' || hash === 'reports' ? hash : 'home';
+  if (hash === 'ledger' || hash === 'records') return 'transactions';
+  return hash === 'transactions' || hash === 'reports' ? hash : 'home';
 };
 
 export const App: React.FC = () => {
@@ -153,19 +154,19 @@ export const App: React.FC = () => {
               </button>
               <button
                 type="button"
-                onClick={() => goTo('ledger')}
-                aria-current={view === 'ledger'}
+                onClick={() => goTo('transactions')}
+                aria-current={view === 'transactions'}
                 className={`flex items-center gap-1 rounded-md px-2 py-1.5 text-[11px] font-semibold transition ${
-                  view === 'ledger'
+                  view === 'transactions'
                     ? 'bg-slate-900 text-white'
                     : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                 }`}
               >
                 <ListOrdered className="h-3 w-3" />
-                <span>Ledger</span>
+                <span>Transactions</span>
                 <span
                   className={`num rounded px-1 text-[10px] font-bold ${
-                    view === 'ledger' ? 'bg-white/20 text-white' : 'bg-slate-200/80 text-slate-600'
+                    view === 'transactions' ? 'bg-white/20 text-white' : 'bg-slate-200/80 text-slate-600'
                   }`}
                 >
                   {periodTransactions.length}
@@ -415,7 +416,7 @@ export const App: React.FC = () => {
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <RecentPreview
                     transactions={periodTransactions}
-                    onOpenLedger={() => goTo('ledger')}
+                    onViewAll={() => goTo('transactions')}
                   />
                   <CategoryPanel
                     items={periodAnalytics.categoryBreakdown}
@@ -427,9 +428,9 @@ export const App: React.FC = () => {
               </div>
             </div>
           </>
-        ) : view === 'ledger' ? (
+        ) : view === 'transactions' ? (
           <>
-            {/* ── Ledger — dedicated section ─────────── */}
+            {/* ── Transactions — dedicated section ─────────── */}
             <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
               <div>
                 <button
@@ -445,7 +446,7 @@ export const App: React.FC = () => {
                   Recent entries
                 </h1>
                 <p className="mt-1 text-[12px] font-medium text-slate-500">
-                  {monthLabel} · full ledger with filters, search and sorting
+                  {monthLabel} · all transactions with filters, search and sorting
                 </p>
               </div>
 
@@ -495,7 +496,7 @@ export const App: React.FC = () => {
               ))}
             </div>
 
-            <LedgerTabsCard
+            <TransactionTabsCard
               transactions={periodTransactions}
               selectedCategory={selectedCategory}
               onClearCategory={() => setSelectedCategory('all')}

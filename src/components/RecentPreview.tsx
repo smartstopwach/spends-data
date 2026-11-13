@@ -7,13 +7,13 @@ import { CategoryIcon } from './CategoryIcon';
 
 interface RecentPreviewProps {
   transactions: Transaction[];
-  onOpenLedger: () => void;
+  onViewAll: () => void;
 }
 
 const PREVIEW_COUNT = 4;
 
 export const RecentPreview: React.FC<RecentPreviewProps> = React.memo(
-  ({ transactions, onOpenLedger }) => {
+  ({ transactions, onViewAll }) => {
     const latest = useMemo(
       () =>
         [...transactions]
@@ -33,10 +33,10 @@ export const RecentPreview: React.FC<RecentPreviewProps> = React.memo(
           </div>
           <button
             type="button"
-            onClick={onOpenLedger}
+            onClick={onViewAll}
             className="flex shrink-0 items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 shadow-sm transition hover:border-indigo-300 hover:bg-indigo-50/60 hover:text-indigo-700"
           >
-            Open ledger
+            View all transactions
             <ArrowRight className="h-3 w-3" />
           </button>
         </div>

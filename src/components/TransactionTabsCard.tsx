@@ -14,9 +14,9 @@ import { SpendCategory, Transaction } from '../types';
 import { formatDisplayDate, formatINR, getTodayISO, shiftISODate } from '../utils/mathAndFormat';
 import { CategoryIcon } from './CategoryIcon';
 
-type LedgerTab = 'all' | 'spend' | 'income';
+type TransactionTab = 'all' | 'spend' | 'income';
 
-interface LedgerTabsCardProps {
+interface TransactionTabsCardProps {
   transactions: Transaction[];
   selectedCategory: SpendCategory | 'all';
   onClearCategory: () => void;
@@ -26,7 +26,7 @@ interface LedgerTabsCardProps {
   monthLabel: string;
 }
 
-const TABS: Array<{ id: LedgerTab; label: string }> = [
+const TABS: Array<{ id: TransactionTab; label: string }> = [
   { id: 'all', label: 'All Activity' },
   { id: 'spend', label: 'Spends' },
   { id: 'income', label: 'Money in' },
@@ -48,7 +48,7 @@ const dayHeading = (date: string): string => {
   });
 };
 
-const LedgerRow: React.FC<{
+const RecordRow: React.FC<{
   tx: Transaction;
   onDelete: (id: string) => void;
   showDate?: boolean;
@@ -122,7 +122,7 @@ const LedgerRow: React.FC<{
   );
 };
 
-export const LedgerTabsCard: React.FC<LedgerTabsCardProps> = React.memo(
+export const TransactionTabsCard: React.FC<TransactionTabsCardProps> = React.memo(
   ({
     transactions,
     selectedCategory,
@@ -132,7 +132,7 @@ export const LedgerTabsCard: React.FC<LedgerTabsCardProps> = React.memo(
     totalOverallCount,
     monthLabel,
   }) => {
-    const [tab, setTab] = useState<LedgerTab>('all');
+    const [tab, setTab] = useState<TransactionTab>('all');
     const [query, setQuery] = useState('');
     const [sortDesc, setSortDesc] = useState(true);
     const [grouped, setGrouped] = useState(true);
@@ -191,13 +191,13 @@ export const LedgerTabsCard: React.FC<LedgerTabsCardProps> = React.memo(
       return groups;
     }, [visible]);
 
-    const handleTab = (next: LedgerTab) => {
+    const handleTab = (next: TransactionTab) => {
       setTab(next);
       setLimit(PAGE_SIZE);
     };
 
     return (
-      <section aria-label="Transaction ledger" className="panel overflow-hidden">
+      <section aria-label="Transactions" className="panel overflow-hidden">
         {/* Header */}
         <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200/80 px-5 py-4">
           <div>
@@ -226,7 +226,7 @@ export const LedgerTabsCard: React.FC<LedgerTabsCardProps> = React.memo(
 
         {/* Tab bar */}
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/80 bg-slate-50/60 px-3 py-2">
-          <div role="tablist" aria-label="Ledger filters" className="flex items-center gap-1">
+          <div role="tablist" aria-label="Transaction filters" className="flex items-center gap-1">
             {TABS.map((t) => {
               const active = tab === t.id;
               return (
@@ -308,7 +308,7 @@ export const LedgerTabsCard: React.FC<LedgerTabsCardProps> = React.memo(
             <p className="mt-1 text-xs font-medium text-slate-500">
               {query || selectedCategory !== 'all'
                 ? 'Try a different tab, search term or clear the filter.'
-                : 'Add your first entry to start the ledger.'}
+                : 'Add your first entry to get started.'}
             </p>
             {totalOverallCount === 0 && (
               <button
@@ -355,7 +355,7 @@ export const LedgerTabsCard: React.FC<LedgerTabsCardProps> = React.memo(
                   </div>
                   <ul className="divide-y divide-slate-100">
                     {group.items.map((tx) => (
-                      <LedgerRow key={tx.id} tx={tx} onDelete={onDelete} />
+                      <RecordRow key={tx.id} tx={tx} onDelete={onDelete} />
                     ))}
                   </ul>
                 </div>
@@ -375,7 +375,7 @@ export const LedgerTabsCard: React.FC<LedgerTabsCardProps> = React.memo(
             </div>
             <ul className="divide-y divide-slate-100">
               {visible.map((tx) => (
-                <LedgerRow key={tx.id} tx={tx} onDelete={onDelete} showDate />
+                <RecordRow key={tx.id} tx={tx} onDelete={onDelete} showDate />
               ))}
             </ul>
           </>
@@ -407,4 +407,4 @@ export const LedgerTabsCard: React.FC<LedgerTabsCardProps> = React.memo(
     );
   }
 );
-LedgerTabsCard.displayName = 'LedgerTabsCard';
+TransactionTabsCard.displayName = 'TransactionTabsCard';

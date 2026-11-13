@@ -196,7 +196,7 @@ export function buildReport(
     }))
     .sort((a, b) => b.amount - a.amount);
 
-  // Newest day first, like the app ledger.
+  // Newest day first, same as the app transactions view.
   const dayGroups = [...dayMap.values()].sort((a, b) => b.date.localeCompare(a.date));
 
   const dailyRows: Report['dailyRows'] = dayGroups
@@ -298,7 +298,7 @@ export function buildReport(
         .join('')
     : '<tr><td colspan="3" style="padding:8px 0;font-size:12px;color:#94a3b8">No spends recorded in this range 🎉</td></tr>';
 
-  const ledgerHtml = dayGroups.length
+  const recordsHtml = dayGroups.length
     ? dayGroups
         .map((day) => {
           const items = day.items
@@ -378,7 +378,7 @@ export function buildReport(
             <td style="padding:7px 6px;font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#94a3b8">Mode</td>
             <td style="padding:7px 8px;font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#94a3b8;text-align:right">Amount</td>
           </tr>
-          ${ledgerHtml}
+          ${recordsHtml}
         </table>
 
         <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-top:14px">

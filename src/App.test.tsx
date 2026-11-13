@@ -2,7 +2,7 @@ import React from 'react';
 import { renderToString } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import App from './App';
-import { LedgerTabsCard } from './components/LedgerTabsCard';
+import { TransactionTabsCard } from './components/TransactionTabsCard';
 import { createSampleTransactions } from './constants';
 
 describe('Full App Render Smoke Test', () => {
@@ -17,9 +17,9 @@ describe('Full App Render Smoke Test', () => {
     expect(html).toContain('₹5,692');
   });
 
-  it('renders the standalone ledger section with tabs', () => {
+  it('renders the standalone transactions section with tabs', () => {
     const html = renderToString(
-      React.createElement(LedgerTabsCard, {
+      React.createElement(TransactionTabsCard, {
         transactions: createSampleTransactions(new Date()),
         selectedCategory: 'all',
         onClearCategory: () => {},

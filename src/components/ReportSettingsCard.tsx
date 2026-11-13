@@ -457,7 +457,7 @@ export const ReportSettingsCard: React.FC<ReportSettingsCardProps> = React.memo(
               )}
             </ul>
 
-            {/* itemised day-by-day ledger */}
+            {/* itemised day-by-day transactions */}
             <div className="mt-3 border-t border-slate-100 pt-2.5">
               <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-slate-400">
                 How the money was spent · day by day
