@@ -4,11 +4,8 @@ import './index.css';
 import App from './App';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { setupNativeShell } from './utils/native';
-import { initPwa } from './utils/pwaInstall';
 
 void setupNativeShell();
-// Capture the install prompt before React mounts so the browser event is never missed.
-initPwa();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

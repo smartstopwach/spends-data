@@ -1,7 +1,7 @@
 import React from 'react';
-import { Download, LayoutDashboard, ListOrdered, Mail, Settings } from 'lucide-react';
+import { LayoutDashboard, ListOrdered, Mail, Settings } from 'lucide-react';
 
-export type AppView = 'home' | 'transactions' | 'reports' | 'download' | 'settings';
+export type AppView = 'home' | 'transactions' | 'reports' | 'settings';
 
 interface AppNavProps {
   view: AppView;
@@ -13,7 +13,6 @@ const ITEMS: Array<{ id: AppView; label: string; icon: React.ComponentType<{ cla
   { id: 'home', label: 'Home', icon: LayoutDashboard },
   { id: 'transactions', label: 'Transactions', icon: ListOrdered },
   { id: 'reports', label: 'Reports', icon: Mail },
-  { id: 'download', label: 'Download', icon: Download },
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
 

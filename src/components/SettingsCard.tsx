@@ -8,7 +8,6 @@ import {
   Lock,
   Share2,
   ShieldCheck,
-  Smartphone,
   Sparkles,
   Trash2,
   Upload,
@@ -34,8 +33,6 @@ interface SettingsCardProps {
     } | null;
   };
   transactionCount: number;
-  installed: boolean;
-  onOpenDownload: () => void;
   onExportCsv: () => void;
   onExportBackup: () => void;
   onImportBackup: (raw: string) => { ok: boolean; message: string };
@@ -90,8 +87,6 @@ export const SettingsCard: React.FC<SettingsCardProps> = ({
   storage,
   notifications,
   transactionCount,
-  installed,
-  onOpenDownload,
   onExportCsv,
   onExportBackup,
   onImportBackup,
@@ -450,43 +445,21 @@ export const SettingsCard: React.FC<SettingsCardProps> = ({
         )}
       </section>
 
-      {/* App */}
+      {/* Share */}
       <section className="panel p-5">
         <div className="flex items-start gap-2.5">
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-700">
-            <Smartphone className="h-4 w-4" />
+            <Share2 className="h-4 w-4" />
           </span>
           <div>
-            <h2 className="text-sm font-semibold text-slate-900">App</h2>
+            <h2 className="text-sm font-semibold text-slate-900">Share</h2>
             <p className="mt-0.5 text-[11px] font-medium text-slate-500">
-              Install and share Spends Data.
+              Send your numbers to someone.
             </p>
           </div>
         </div>
 
         <div className="mt-3 divide-y divide-slate-100">
-          <Row
-            title={installed ? 'App installed' : 'Download app'}
-            subtitle={
-              installed
-                ? 'Open the download options to reinstall or get the Android build.'
-                : 'Choose the native Android app or install this website — both go offline.'
-            }
-          >
-            <button
-              type="button"
-              onClick={onOpenDownload}
-              className="flex h-9 items-center gap-1.5 rounded-lg bg-indigo-600 px-3 text-[11px] font-bold text-white transition hover:bg-indigo-700"
-            >
-              <Download className="h-3 w-3" />
-              Download
-            </button>
-          </Row>
-
-
-
-
-
           <Row title="Share summary" subtitle="Send this week's numbers to a friend or family">
             <button
               type="button"
@@ -525,7 +498,7 @@ export const SettingsCard: React.FC<SettingsCardProps> = ({
           </li>
           <li className="flex gap-2">
             <Check className="mt-0.5 h-3 w-3 shrink-0 text-emerald-500" />
-            Uninstalling the app or clearing site data removes everything.
+            Clearing this site's browser data removes everything.
           </li>
         </ul>
 

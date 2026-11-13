@@ -131,7 +131,7 @@ export function useNotifications() {
     [settings, permission, notifyFromSnapshot, update]
   );
 
-  /** App icon badge (Chrome / installed PWAs). */
+  /** App icon badge (where the browser supports it). */
   const badgeCount = useMemo(() => {
     if (!settings.enabled) return 0;
     let count = 0;
