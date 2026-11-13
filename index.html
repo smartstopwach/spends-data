@@ -12,7 +12,10 @@
     />
 
     <!-- App / PWA -->
-    <link rel="manifest" href="./assets/app-B9BdpzWY.webmanifest" />
+    <!-- Absolute path on purpose: Vite must NOT bundle the manifest into assets/.
+         Bundled, its relative icon/start_url paths resolve under /assets/ (404) and
+         the install prompt never appears. -->
+    <link rel="manifest" href="./manifest.webmanifest" />
     <meta name="application-name" content="Spends Data" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -42,8 +45,8 @@
       media="print"
       onload="this.media='all'"
     />
-    <script type="module" crossorigin src="./assets/app-hcVb2Odc.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/app-BPui7xP0.css">
+    <script type="module" crossorigin src="./assets/app-Bjzf7_Wl.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/app-CHLM8etB.css">
   </head>
   <body>
     <div id="root"></div>

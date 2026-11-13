@@ -12,7 +12,10 @@
     />
 
     <!-- App / PWA -->
-    <link rel="manifest" href="./manifest.webmanifest" />
+    <!-- Absolute path on purpose: Vite must NOT bundle the manifest into assets/.
+         Bundled, its relative icon/start_url paths resolve under /assets/ (404) and
+         the install prompt never appears. -->
+    <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="application-name" content="Spends Data" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />

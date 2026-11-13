@@ -1,14 +1,22 @@
 import React from 'react';
 import { ArrowRight, Check, Clock, Download, MonitorDown, Smartphone } from 'lucide-react';
 import { APP_VERSION } from '../version';
-import { APK_URL, RELEASES_URL, RELEASE_TAG, RELEASE_URL, REPO_URL } from '../utils/downloads';
+import {
+  ANDROID_WORKFLOW_URL,
+  APK_URL,
+  apkAvailabilityFromResponse,
+  RELEASE_API_URL,
+  RELEASE_TAG,
+  RELEASE_URL,
+  RELEASES_URL,
+} from '../utils/downloads';
 import { PwaState } from '../hooks/usePwa';
 
 interface DownloadPageProps {
   pwa: Pick<PwaState, 'install' | 'installed' | 'manualSteps'>;
 }
 
-type ApkState = 'checking' | 'ready' | 'missing';
+type ApkState = 'checking' | 'ready' | 'missing' | 'unknown';
 
 /**
  * Standalone "Download" tab: the only place a user needs to go to put Spends
@@ -20,12 +28,13 @@ export const DownloadPage: React.FC<DownloadPageProps> = ({ pwa }) => {
 
   React.useEffect(() => {
     let alive = true;
-    fetch(RELEASE_URL, { method: 'HEAD' })
-      .then((res) => {
-        if (alive) setApk(res.ok ? 'ready' : 'missing');
+    fetch(RELEASE_API_URL, { headers: { Accept: 'application/vnd.github+json' } })
+      .then(async (res) => {
+        const release = res.ok ? await res.json().catch(() => null) : null;
+        if (alive) setApk(apkAvailabilityFromResponse(res.status, release));
       })
       .catch(() => {
-        if (alive) setApk('missing');
+        if (alive) setApk('unknown');
       });
     return () => {
       alive = false;
@@ -81,39 +90,48 @@ export const DownloadPage: React.FC<DownloadPageProps> = ({ pwa }) => {
             </ul>
 
             <div className="mt-3.5">
-              {apk === 'ready' ? (
+              {apk === 'missing' ? (
+                <div className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 bg-slate-50 text-[12px] font-bold text-slate-500 sm:w-auto sm:px-6">
+                  <Clock className="h-4 w-4" />
+                  Build not published yet
+                </div>
+              ) : (
                 <a
                   href={APK_URL}
                   className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 text-[13px] font-bold text-white transition hover:bg-indigo-700 active:scale-[0.99] sm:w-auto sm:px-6"
                 >
                   <Download className="h-4 w-4" />
-                  Download APK
+                  {apk === 'checking' ? 'Checking build…' : 'Download APK'}
                 </a>
-              ) : (
-                <div className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 bg-slate-50 text-[12px] font-bold text-slate-500 sm:w-auto sm:px-6">
-                  <Clock className="h-4 w-4" />
-                  {apk === 'checking' ? 'Checking build…' : 'Build not published yet'}
-                </div>
               )}
 
               <p className="mt-2 text-[10.5px] font-medium leading-relaxed text-slate-400">
-                {apk === 'ready' ? (
-                  <>Tap the downloaded file, then allow “install from unknown sources”.</>
-                ) : (
+                {apk === 'missing' ? (
                   <>
-                    The APK is not on the releases page yet — publish the workflow in{' '}
+                    The APK is not on the releases page yet. Run the{' '}
                     <a
-                      href={`${REPO_URL}/blob/arena/5280413c-spends-data/ci/android-release.yml`}
+                      href={ANDROID_WORKFLOW_URL}
                       target="_blank"
                       rel="noreferrer"
                       className="font-semibold text-indigo-600 underline"
                     >
-                      ci/android-release.yml
+                      Build Android app
                     </a>{' '}
-                    once and this button turns into a real download.
+                    workflow from the Actions tab, then this button turns into a real download.
                   </>
+                ) : (
+                  <>Tap the downloaded file, then allow “install from unknown sources”.</>
                 )}
               </p>
+
+              <a
+                href={RELEASE_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-2 inline-block text-[11px] font-semibold text-indigo-600 underline"
+              >
+                Open {RELEASE_TAG} on GitHub
+              </a>
             </div>
           </div>
         </div>
