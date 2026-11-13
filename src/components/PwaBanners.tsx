@@ -41,7 +41,7 @@ export const PwaBanners: React.FC = () => {
     <>
       {/* Update available */}
       {updateReady && (
-        <div className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom,0px)+4.5rem)] z-50 flex justify-center px-3 md:bottom-4 md:px-4">
+        <div className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom,0px)+4.5rem)] z-50 flex justify-center px-3 lg:bottom-4 lg:px-4">
           <div className="flex w-full max-w-md items-center gap-3 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 shadow-xl shadow-slate-900/10">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
               <RefreshCw className="h-4 w-4" />
@@ -73,7 +73,7 @@ export const PwaBanners: React.FC = () => {
 
       {/* Install prompt */}
       {canInstall && !installed && !updateReady && (
-        <div className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom,0px)+4.5rem)] z-40 flex justify-center px-3 md:bottom-4 md:px-4">
+        <div className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom,0px)+4.5rem)] z-40 flex justify-center px-3 lg:bottom-4 lg:px-4">
           <div className="flex w-full max-w-md items-center gap-3 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 shadow-xl shadow-slate-900/10">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-600 text-white">
               <Download className="h-4 w-4" />

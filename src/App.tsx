@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  Plus,
   Bell,
   ChevronDown,
   ChevronLeft,
@@ -225,7 +224,7 @@ export const App: React.FC = () => {
           <div className="flex shrink-0 items-center gap-1.5">
             {/* Desktop nav + period controls live in the bar; on phones they get
                 their own row below so nothing is squeezed. */}
-            <div className="hidden items-center gap-1.5 md:flex">
+            <div className="hidden items-center gap-1.5 lg:flex">
               <AppNav
                 view={view}
                 onNavigate={goTo}
@@ -324,7 +323,7 @@ export const App: React.FC = () => {
           </div>
         </div>
         {/* Phone: period controls get their own scrollable row. */}
-        <div className="border-t border-slate-100 md:hidden">
+        <div className="border-t border-slate-100 lg:hidden">
           <div className="flex items-center justify-between gap-2 px-4 py-2">
             <PeriodSwitcher
               period={periodInfo}
@@ -356,7 +355,7 @@ export const App: React.FC = () => {
         </div>
       )}
 
-      <main className="mx-auto max-w-7xl px-3 pb-[calc(env(safe-area-inset-bottom,0px)+9.5rem)] pt-4 sm:px-6 sm:pt-5 md:pb-14">
+      <main className="mx-auto max-w-7xl px-3 pb-[calc(env(safe-area-inset-bottom,0px)+6.5rem)] pt-4 sm:px-6 sm:pt-5 lg:pb-14">
         {due && (
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5">
             <p className="flex items-center gap-2 text-[11px] font-semibold text-amber-900">
@@ -392,18 +391,18 @@ export const App: React.FC = () => {
                 </p>
               </div>
 
-              <div className="hidden items-center gap-2 sm:flex">
+              <div className="flex w-full items-center gap-2 sm:w-auto">
                 <button
                   type="button"
                   onClick={() => handleQuickAdd('income')}
-                  className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-emerald-700 shadow-sm transition hover:border-emerald-200 hover:bg-emerald-50"
+                  className="h-9 flex-1 rounded-lg border border-slate-200 bg-white px-3 text-[11px] font-semibold text-emerald-700 shadow-sm transition hover:border-emerald-200 hover:bg-emerald-50 sm:h-auto sm:flex-none sm:py-1.5"
                 >
                   + money in
                 </button>
                 <button
                   type="button"
                   onClick={() => handleQuickAdd('spend')}
-                  className="rounded-lg bg-indigo-600 px-3 py-1.5 text-[11px] font-semibold text-white shadow-sm transition hover:bg-indigo-700"
+                  className="h-9 flex-1 rounded-lg bg-indigo-600 px-3 text-[11px] font-semibold text-white shadow-sm transition hover:bg-indigo-700 sm:h-auto sm:flex-none sm:py-1.5"
                 >
                   + Add spend
                 </button>
@@ -422,9 +421,9 @@ export const App: React.FC = () => {
               onQuickAdd={handleQuickAdd}
             />
 
-            <div className="mt-3 grid grid-cols-1 gap-3 sm:mt-4 sm:gap-4 lg:grid-cols-12">
+            <div className="mt-3 grid grid-cols-1 gap-3 sm:mt-4 sm:gap-4 md:grid-cols-12">
               {/* Add entry first on mobile, right column on desktop */}
-              <div className="order-1 flex flex-col gap-3 sm:gap-4 lg:order-2 lg:col-span-4">
+              <div className="order-1 flex flex-col gap-3 sm:gap-4 md:col-span-5 lg:order-2 lg:col-span-4">
                 <div id="entry-panel" className="scroll-mt-20">
                   <EntryPanel
                     activeType={activeType}
@@ -435,7 +434,7 @@ export const App: React.FC = () => {
                 </div>
               </div>
 
-              <div className="order-2 flex flex-col gap-3 sm:gap-4 lg:order-1 lg:col-span-8">
+              <div className="order-2 flex flex-col gap-3 sm:gap-4 md:col-span-7 lg:order-1 lg:col-span-8">
                 <TrendCard
                   dailySeries={periodAnalytics.dailySeries}
                   savingsMoved={periodAnalytics.savingsMoved}
@@ -783,17 +782,6 @@ export const App: React.FC = () => {
           </span>
         </footer>
       </main>
-
-      {/* Phone FAB — one tap to add from any screen, sits above the tab bar. */}
-      <button
-        type="button"
-        onClick={() => handleQuickAdd('spend')}
-        aria-label="Add spend"
-        className="fixed bottom-[calc(env(safe-area-inset-bottom,0px)+72px)] right-4 z-40 flex h-12 items-center gap-1.5 rounded-full bg-indigo-600 pl-3.5 pr-4 text-[12px] font-bold text-white shadow-lg shadow-indigo-900/25 transition active:scale-95 md:hidden"
-      >
-        <Plus className="h-4 w-4" />
-        Add
-      </button>
 
       <PwaBanners />
     </div>

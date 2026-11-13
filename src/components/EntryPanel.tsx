@@ -214,7 +214,7 @@ export const EntryPanel: React.FC<EntryPanelProps> = React.memo(
             <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
               {isIncome ? 'Source' : 'Category (savings counts as a spend)'}
             </p>
-            <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-2">
+            <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 md:grid-cols-2 xl:grid-cols-3">
               {categories.map((c) => {
                 const active = isIncome ? incomeSrc === c.id : spendCat === c.id;
                 return (
@@ -251,7 +251,7 @@ export const EntryPanel: React.FC<EntryPanelProps> = React.memo(
           </div>
 
           {/* Note + date */}
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <div className="grid grid-cols-2 gap-2">
             <div className="sm:col-span-2">
               <label htmlFor="note" className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
                 Note

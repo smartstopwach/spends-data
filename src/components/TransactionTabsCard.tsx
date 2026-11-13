@@ -58,14 +58,14 @@ const RecordRow: React.FC<{
 
   return (
     <li
-      className={`group grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-3 transition-colors hover:bg-slate-50/80 sm:gap-3 sm:px-4 sm:py-2.5 md:px-5 ${
+      className={`group grid grid-cols-[1fr_auto] items-center gap-2 px-3 py-3 transition-colors hover:bg-slate-50/80 sm:gap-3 sm:px-4 sm:py-2.5 lg:px-5 ${
         showDate
-          ? 'md:grid-cols-[92px_1fr_130px_104px_96px_36px]'
-          : 'md:grid-cols-[1fr_130px_104px_96px_36px]'
+          ? 'lg:grid-cols-[92px_1fr_130px_104px_96px_36px]'
+          : 'lg:grid-cols-[1fr_130px_104px_96px_36px]'
       }`}
     >
       {showDate && (
-        <span className="num hidden text-[11px] font-medium text-slate-500 md:block">
+        <span className="num hidden text-[11px] font-medium text-slate-500 lg:block">
           {formatDisplayDate(tx.date)}
         </span>
       )}
@@ -82,17 +82,17 @@ const RecordRow: React.FC<{
           <p className="truncate text-[13px] font-semibold text-slate-900">
             {tx.note || meta?.label || 'Entry'}
           </p>
-          <p className="truncate text-[11px] font-medium text-slate-400 md:hidden">
+          <p className="truncate text-[11px] font-medium text-slate-400 lg:hidden">
             {meta?.label ?? tx.category} · {MODE_LABEL[tx.paymentMode] ?? tx.paymentMode}
           </p>
         </div>
       </div>
 
-      <span className="hidden truncate text-[11px] font-semibold text-slate-500 md:block">
+      <span className="hidden truncate text-[11px] font-semibold text-slate-500 lg:block">
         {meta?.label ?? tx.category}
       </span>
 
-      <span className="hidden md:block">
+      <span className="hidden lg:block">
         <span className="rounded-md border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-500">
           {MODE_LABEL[tx.paymentMode] ?? tx.paymentMode}
         </span>
@@ -113,7 +113,7 @@ const RecordRow: React.FC<{
           onClick={() => onDelete(tx.id)}
           aria-label="Delete entry"
           title="Delete"
-          className="rounded-md p-2 text-slate-300 transition hover:bg-rose-50 hover:text-rose-600 focus-visible:opacity-100 active:bg-rose-50 active:text-rose-600 md:p-1.5 md:opacity-0 md:group-hover:opacity-100"
+          className="rounded-md p-2 text-slate-300 transition hover:bg-rose-50 hover:text-rose-600 focus-visible:opacity-100 active:bg-rose-50 active:text-rose-600 lg:p-1.5 lg:opacity-0 lg:group-hover:opacity-100"
         >
           <Trash2 className="h-3.5 w-3.5" />
         </button>
@@ -328,7 +328,7 @@ export const TransactionTabsCard: React.FC<TransactionTabsCardProps> = React.mem
               const net = Math.round((group.income - group.spend) * 100) / 100;
               return (
                 <div key={group.date}>
-                  <div className="flex items-center justify-between gap-2 border-y border-slate-100 bg-slate-50/70 px-4 py-1.5 md:px-5">
+                  <div className="flex items-center justify-between gap-2 border-y border-slate-100 bg-slate-50/70 px-4 py-1.5 lg:px-5">
                     <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.07em] text-slate-500">
                       <CalendarDays className="h-3 w-3 text-slate-400" />
                       {dayHeading(group.date)}
@@ -365,7 +365,7 @@ export const TransactionTabsCard: React.FC<TransactionTabsCardProps> = React.mem
         ) : (
           /* ── Flat list with a date column ── */
           <>
-            <div className="hidden grid-cols-[92px_1fr_130px_104px_96px_36px] items-center gap-3 border-b border-slate-200/80 bg-white px-5 py-2 text-[10px] font-bold uppercase tracking-[0.08em] text-slate-400 md:grid">
+            <div className="hidden grid-cols-[92px_1fr_130px_104px_96px_36px] items-center gap-3 border-b border-slate-200/80 bg-white px-5 py-2 text-[10px] font-bold uppercase tracking-[0.08em] text-slate-400 lg:grid">
               <span>Date</span>
               <span>Description</span>
               <span>Category</span>
