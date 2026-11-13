@@ -1,13 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Check, Download, MonitorDown, Smartphone, X } from 'lucide-react';
+import { Check, Clock, Download, MonitorDown, Smartphone, X } from 'lucide-react';
 import { PwaState } from '../hooks/usePwa';
-import {
-  APK_URL,
-  DOWNLOAD_OPTIONS,
-  RELEASES_URL,
-  RELEASE_TAG,
-  RELEASE_URL,
-} from '../utils/downloads';
+import { APK_URL, DOWNLOAD_OPTIONS, RELEASES_URL, RELEASE_URL } from '../utils/downloads';
 
 interface DownloadAppSheetProps {
   open: boolean;
@@ -57,13 +51,6 @@ export const DownloadAppSheet: React.FC<DownloadAppSheetProps> = ({ open, onClos
   }, [open, onClose]);
 
   if (!open) return null;
-
-  const nativeLabel =
-    apk === 'checking'
-      ? 'Checking build…'
-      : apk === 'ready'
-      ? 'Download APK'
-      : 'Open releases';
 
   return (
     <div
@@ -123,36 +110,33 @@ export const DownloadAppSheet: React.FC<DownloadAppSheetProps> = ({ open, onClos
               ))}
             </ul>
 
-            <a
-              href={apk === 'missing' ? RELEASES_URL : APK_URL}
-              target={apk === 'missing' ? '_blank' : undefined}
-              rel={apk === 'missing' ? 'noreferrer' : undefined}
-              className={`mt-3 flex h-10 w-full items-center justify-center gap-1.5 rounded-lg text-[12px] font-bold text-white transition ${
-                apk === 'missing'
-                  ? 'bg-slate-900 hover:bg-slate-800'
-                  : 'bg-indigo-600 hover:bg-indigo-700'
-              }`}
-            >
-              <Download className="h-3.5 w-3.5" />
-              {nativeLabel}
-            </a>
+            {apk === 'ready' ? (
+              <a
+                href={APK_URL}
+                className="mt-3 flex h-10 w-full items-center justify-center gap-1.5 rounded-lg bg-indigo-600 text-[12px] font-bold text-white transition hover:bg-indigo-700"
+              >
+                <Download className="h-3.5 w-3.5" />
+                Download APK
+              </a>
+            ) : (
+              <div
+                aria-disabled="true"
+                className="mt-3 flex h-10 w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-slate-300 bg-slate-50 text-[12px] font-bold text-slate-500"
+              >
+                <Clock className="h-3.5 w-3.5" />
+                {apk === 'checking' ? 'Checking build…' : 'Android build not published yet'}
+              </div>
+            )}
 
             <p className="mt-2 text-[10.5px] font-medium leading-relaxed text-slate-400">
-              {apk === 'missing' ? (
-                <>
-                  No build for v{RELEASE_TAG.split('-v')[1]} yet —{' '}
-                  <a
-                    href={RELEASES_URL}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="font-semibold text-indigo-600 underline"
-                  >
-                    see all releases
-                  </a>
-                  . Meanwhile the website works fully offline once installed.
-                </>
-              ) : (
+              {apk === 'ready' ? (
                 <>After download, tap the file and allow “install from unknown sources”.</>
+              ) : (
+                <>
+                  The Android build is not on the releases page yet. Until it is,
+                  installing the website below gives you the same app — offline, full screen,
+                  reminders included.
+                </>
               )}
             </p>
           </div>

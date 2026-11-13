@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   ListOrdered,
   Mail,
+  Menu,
   Settings,
   RotateCcw,
   Smartphone,
@@ -207,8 +208,8 @@ export const App: React.FC = () => {
     <div className="min-h-screen bg-[var(--app-bg)] text-slate-900">
       {/* ── App bar ─────────────────────────────────────────── */}
       <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/85 backdrop-blur-md">
-        <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6">
-          <div className="flex min-w-0 items-center gap-2.5">
+        <div className="mx-auto flex h-14 max-w-7xl items-center gap-2 px-3 sm:gap-3 sm:px-6">
+          <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-2.5">
             <div className="flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-lg bg-indigo-600 text-sm font-extrabold text-white shadow-sm">
               ₹
             </div>
@@ -252,11 +253,12 @@ export const App: React.FC = () => {
                 onClick={() => setMenuOpen((o) => !o)}
                 aria-expanded={menuOpen}
                 aria-haspopup="menu"
-                className="flex h-9 items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-[11px] font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 md:h-auto"
+                className="flex h-9 min-w-9 items-center justify-center gap-1 rounded-lg border border-slate-200 bg-white px-2 text-[11px] font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
                 aria-label="Actions"
               >
-                <span className="hidden sm:inline">Actions</span>
-                <ChevronDown className="h-3 w-3 text-slate-400" />
+                <Menu className="h-4 w-4 md:hidden" />
+                <span className="hidden md:inline">Actions</span>
+                <ChevronDown className="hidden h-3 w-3 text-slate-400 md:block" />
               </button>
 
               {menuOpen && (
@@ -337,7 +339,7 @@ export const App: React.FC = () => {
         </div>
         {/* Phone: period controls get their own scrollable row. */}
         <div className="border-t border-slate-100 md:hidden">
-          <div className="flex items-center justify-between gap-2 px-4 py-2">
+          <div className="flex h-12 items-center justify-between gap-2 px-3">
             <PeriodSwitcher
               period={periodInfo}
               state={period}
@@ -388,7 +390,7 @@ export const App: React.FC = () => {
         {view === 'home' ? (
           <>
             {/* Page header */}
-            <div className="mb-3 flex flex-wrap items-end justify-between gap-2 sm:mb-4 sm:gap-3">
+            <div className="mb-3 flex flex-col gap-2.5 sm:mb-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between sm:gap-3">
               <div className="min-w-0">
                 <h1 className="flex items-center gap-2 text-base font-bold tracking-tight text-slate-900 sm:text-xl">
                   <LayoutDashboard className="h-4 w-4 text-indigo-500" />
@@ -404,7 +406,7 @@ export const App: React.FC = () => {
                 </p>
               </div>
 
-              <div className="flex w-full items-center gap-2 sm:w-auto">
+              <div className="flex w-full items-stretch gap-2 sm:w-auto">
                 <button
                   type="button"
                   onClick={() => handleQuickAdd('income')}
