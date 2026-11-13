@@ -35,7 +35,7 @@ import {
   shareText,
 } from './utils/native';
 import { PwaBanners } from './components/PwaBanners';
-import { DownloadAppSheet } from './components/DownloadAppSheet';
+import { DownloadPage } from './components/DownloadPage';
 import { TrendCard } from './components/TrendCard';
 import { useEmailReport } from './hooks/useEmailReport';
 import { useSpendsStore } from './hooks/useSpendsStore';
@@ -49,7 +49,9 @@ const readHashView = (): View => {
   if (typeof window === 'undefined') return 'home';
   const hash = window.location.hash.replace('#', '');
   if (hash === 'ledger' || hash === 'records') return 'transactions';
-  return hash === 'transactions' || hash === 'reports' || hash === 'settings' ? hash : 'home';
+  return hash === 'transactions' || hash === 'reports' || hash === 'download' || hash === 'settings'
+    ? hash
+    : 'home';
 };
 
 export const App: React.FC = () => {
@@ -75,7 +77,6 @@ export const App: React.FC = () => {
   const [focusTrigger, setFocusTrigger] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState<SpendCategory | 'all'>('all');
   const [menuOpen, setMenuOpen] = useState(false);
-  const [downloadOpen, setDownloadOpen] = useState(false);
   const { config: reportConfig, update: updateReportConfig, markSent, due } = useEmailReport();
   const notifications = useNotifications();
   const storage = useStorageUsage(transactions.length);
@@ -298,7 +299,7 @@ export const App: React.FC = () => {
                       type="button"
                       onClick={() => {
                         setMenuOpen(false);
-                        setDownloadOpen(true);
+                        goTo('download');
                       }}
                       className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[12px] font-medium text-slate-700 transition hover:bg-slate-50 focus-visible:bg-slate-50 focus-visible:outline-none"
                     >
@@ -696,6 +697,8 @@ export const App: React.FC = () => {
               </div>
             </div>
           </>
+        ) : view === 'download' ? (
+          <DownloadPage pwa={pwa} />
         ) : (
           <>
             {/* ── Settings ───────────────────────────────── */}
@@ -713,7 +716,7 @@ export const App: React.FC = () => {
               storage={storage}
               transactionCount={transactions.length}
               installed={pwa.installed}
-              onOpenDownload={() => setDownloadOpen(true)}
+              onOpenDownload={() => goTo('download')}
               notifications={{
                 settings: notifications.settings,
                 permission: notifications.permission,
@@ -790,8 +793,6 @@ export const App: React.FC = () => {
           </span>
         </footer>
       </main>
-
-      <DownloadAppSheet open={downloadOpen} onClose={() => setDownloadOpen(false)} pwa={pwa} />
 
       <PwaBanners />
     </div>

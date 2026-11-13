@@ -3,6 +3,7 @@ import { renderToString } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import App from './App';
 import { TransactionTabsCard } from './components/TransactionTabsCard';
+import { DownloadPage } from './components/DownloadPage';
 import { createSampleTransactions } from './constants';
 
 describe('Full App Render Smoke Test', () => {
@@ -51,5 +52,18 @@ describe('Active state & dummy data hygiene', () => {
   it('marks the active navigation item for assistive tech', () => {
     const html = renderToString(React.createElement(App));
     expect(html).toContain('aria-current');
+  });
+});
+
+describe('Download tab', () => {
+  it('offers both native and website install', () => {
+    const html = renderToString(
+      React.createElement(DownloadPage, {
+        pwa: { install: async () => {}, installed: false, manualSteps: null },
+      })
+    );
+    expect(html).toContain('Android app (APK)');
+    expect(html).toContain('Install this website');
+    expect(html).toContain('All releases');
   });
 });

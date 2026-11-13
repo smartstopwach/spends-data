@@ -1,7 +1,7 @@
 import React from 'react';
-import { LayoutDashboard, ListOrdered, Mail, Settings } from 'lucide-react';
+import { Download, LayoutDashboard, ListOrdered, Mail, Settings } from 'lucide-react';
 
-export type AppView = 'home' | 'transactions' | 'reports' | 'settings';
+export type AppView = 'home' | 'transactions' | 'reports' | 'download' | 'settings';
 
 interface AppNavProps {
   view: AppView;
@@ -13,6 +13,7 @@ const ITEMS: Array<{ id: AppView; label: string; icon: React.ComponentType<{ cla
   { id: 'home', label: 'Home', icon: LayoutDashboard },
   { id: 'transactions', label: 'Transactions', icon: ListOrdered },
   { id: 'reports', label: 'Reports', icon: Mail },
+  { id: 'download', label: 'Download', icon: Download },
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
@@ -38,12 +39,12 @@ export const AppNav: React.FC<AppNavProps> = ({ view, onNavigate, counts }) => {
                 type="button"
                 onClick={() => onNavigate(item.id)}
                 aria-current={active ? 'page' : undefined}
-                className={`relative flex min-w-0 flex-1 flex-col items-center gap-0.5 px-0.5 pb-2 pt-2 text-[9.5px] font-semibold leading-none transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-400 ${
+                className={`relative flex min-w-0 flex-1 flex-col items-center gap-0.5 px-0 pb-2 pt-2 text-[9px] font-semibold leading-none transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-400 ${
                   active ? 'text-indigo-600' : 'text-slate-400'
                 }`}
               >
                 <span className="relative">
-                  <Icon className="h-[19px] w-[19px]" />
+                  <Icon className="h-[18px] w-[18px]" />
                   {badge !== null && (
                     <span className="absolute -right-2 -top-1.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-indigo-600 px-1 text-[8px] font-bold text-white">
                       {badge > 99 ? '99+' : badge}
