@@ -229,6 +229,7 @@ export const App: React.FC = () => {
                 their own row below so nothing is squeezed. */}
             <div className="hidden items-center gap-1.5 md:flex">
               <AppNav
+                variant="desktop"
                 view={view}
                 onNavigate={goTo}
                 counts={{
@@ -353,6 +354,17 @@ export const App: React.FC = () => {
           </div>
         </div>
       </header>
+
+      {/* Phone bottom tab bar. Rendered outside the header so its fixed positioning works. */}
+      <AppNav
+        variant="mobile"
+        view={view}
+        onNavigate={goTo}
+        counts={{
+          transactions: periodTransactions.length,
+          reports: reportConfig.enabled ? 1 : 0,
+        }}
+      />
 
       {hasDemoEntries && (
         <div className="border-b border-indigo-200 bg-indigo-50/70">
