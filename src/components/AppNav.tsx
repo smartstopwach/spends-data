@@ -26,7 +26,7 @@ export const AppNav: React.FC<AppNavProps> = ({ view, onNavigate, counts }) => {
   return (
     <nav aria-label="Main navigation">
       {/* Mobile: fixed bottom tab bar */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-1px_12px_rgba(15,23,42,0.06)] backdrop-blur-md md:hidden">
         <div className="mx-auto flex max-w-md items-stretch">
           {ITEMS.map((item) => {
             const active = view === item.id;
@@ -38,19 +38,19 @@ export const AppNav: React.FC<AppNavProps> = ({ view, onNavigate, counts }) => {
                 type="button"
                 onClick={() => onNavigate(item.id)}
                 aria-current={active}
-                className={`relative flex flex-1 flex-col items-center gap-1 py-2.5 text-[10px] font-semibold transition ${
+                className={`relative flex min-w-0 flex-1 flex-col items-center gap-0.5 px-0.5 pb-2 pt-2 text-[9.5px] font-semibold leading-none transition ${
                   active ? 'text-indigo-600' : 'text-slate-400'
                 }`}
               >
                 <span className="relative">
-                  <Icon className="h-[18px] w-[18px]" />
+                  <Icon className="h-[19px] w-[19px]" />
                   {badge !== null && (
                     <span className="absolute -right-2 -top-1.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-indigo-600 px-1 text-[8px] font-bold text-white">
                       {badge > 99 ? '99+' : badge}
                     </span>
                   )}
                 </span>
-                <span>{item.label}</span>
+                <span className="w-full truncate text-center">{item.label}</span>
                 {active && (
                   <span className="absolute inset-x-5 top-0 h-0.5 rounded-full bg-indigo-600" />
                 )}

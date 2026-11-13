@@ -356,7 +356,7 @@ export const App: React.FC = () => {
         </div>
       )}
 
-      <main className="mx-auto max-w-7xl px-4 pb-28 pt-5 sm:px-6 md:pb-14">
+      <main className="mx-auto max-w-7xl px-3 pb-[calc(env(safe-area-inset-bottom,0px)+9.5rem)] pt-4 sm:px-6 sm:pt-5 md:pb-14">
         {due && (
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5">
             <p className="flex items-center gap-2 text-[11px] font-semibold text-amber-900">
@@ -376,13 +376,13 @@ export const App: React.FC = () => {
         {view === 'home' ? (
           <>
             {/* Page header */}
-            <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-              <div>
-                <h1 className="flex items-center gap-2 text-lg font-bold tracking-tight text-slate-900 sm:text-xl">
+            <div className="mb-3 flex flex-wrap items-end justify-between gap-2 sm:mb-4 sm:gap-3">
+              <div className="min-w-0">
+                <h1 className="flex items-center gap-2 text-base font-bold tracking-tight text-slate-900 sm:text-xl">
                   <LayoutDashboard className="h-4 w-4 text-indigo-500" />
                   Overview
                 </h1>
-                <p className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[12px] font-medium text-slate-500">
+                <p className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[11px] font-medium text-slate-500 sm:text-[12px]">
                   <span>
                     {periodInfo.label} · <span className="num">{periodTransactions.length}</span>{' '}
                     {periodTransactions.length === 1 ? 'entry' : 'entries'}
@@ -392,7 +392,7 @@ export const App: React.FC = () => {
                 </p>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="hidden items-center gap-2 sm:flex">
                 <button
                   type="button"
                   onClick={() => handleQuickAdd('income')}
@@ -421,9 +421,9 @@ export const App: React.FC = () => {
               onQuickAdd={handleQuickAdd}
             />
 
-            <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-12">
+            <div className="mt-3 grid grid-cols-1 gap-3 sm:mt-4 sm:gap-4 lg:grid-cols-12">
               {/* Add entry first on mobile, right column on desktop */}
-              <div className="order-1 flex flex-col gap-4 lg:order-2 lg:col-span-4">
+              <div className="order-1 flex flex-col gap-3 sm:gap-4 lg:order-2 lg:col-span-4">
                 <div id="entry-panel" className="scroll-mt-20">
                   <EntryPanel
                     activeType={activeType}
@@ -434,7 +434,7 @@ export const App: React.FC = () => {
                 </div>
               </div>
 
-              <div className="order-2 flex flex-col gap-4 lg:order-1 lg:col-span-8">
+              <div className="order-2 flex flex-col gap-3 sm:gap-4 lg:order-1 lg:col-span-8">
                 <TrendCard
                   dailySeries={periodAnalytics.dailySeries}
                   savingsMoved={periodAnalytics.savingsMoved}
@@ -446,7 +446,7 @@ export const App: React.FC = () => {
                   safeDailyAllowance={periodAnalytics.safeDailyAllowance}
                 />
 
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2">
                   <RecentPreview
                     transactions={periodTransactions}
                     onViewAll={() => goTo('transactions')}
@@ -464,7 +464,7 @@ export const App: React.FC = () => {
         ) : view === 'transactions' ? (
           <>
             {/* ── Transactions — dedicated section ─────────── */}
-            <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+            <div className="mb-3 flex flex-wrap items-end justify-between gap-2 sm:mb-4 sm:gap-3">
               <div>
                 <button
                   type="button"
@@ -474,7 +474,7 @@ export const App: React.FC = () => {
                   <ChevronLeft className="h-3 w-3" />
                   Back to overview
                 </button>
-                <h1 className="flex items-center gap-2 text-lg font-bold tracking-tight text-slate-900 sm:text-xl">
+                <h1 className="flex items-center gap-2 text-base font-bold tracking-tight text-slate-900 sm:text-xl">
                   <ListOrdered className="h-4 w-4 text-indigo-500" />
                   Recent entries
                 </h1>
@@ -554,7 +554,7 @@ export const App: React.FC = () => {
         ) : view === 'reports' ? (
           <>
             {/* ── Reports — weekly email digest ─────────────── */}
-            <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+            <div className="mb-3 flex flex-wrap items-end justify-between gap-2 sm:mb-4 sm:gap-3">
               <div>
                 <button
                   type="button"
@@ -564,7 +564,7 @@ export const App: React.FC = () => {
                   <ChevronLeft className="h-3 w-3" />
                   Back to overview
                 </button>
-                <h1 className="flex items-center gap-2 text-lg font-bold tracking-tight text-slate-900 sm:text-xl">
+                <h1 className="flex items-center gap-2 text-base font-bold tracking-tight text-slate-900 sm:text-xl">
                   <Mail className="h-4 w-4 text-indigo-500" />
                   Reports
                 </h1>
@@ -689,7 +689,7 @@ export const App: React.FC = () => {
           <>
             {/* ── Settings ───────────────────────────────── */}
             <div className="mb-4">
-              <h1 className="flex items-center gap-2 text-lg font-bold tracking-tight text-slate-900 sm:text-xl">
+              <h1 className="flex items-center gap-2 text-base font-bold tracking-tight text-slate-900 sm:text-xl">
                 <Settings className="h-4 w-4 text-indigo-500" />
                 Settings
               </h1>

@@ -57,7 +57,7 @@ const Row: React.FC<{
   subtitle?: string;
   children: React.ReactNode;
 }> = ({ title, subtitle, children }) => (
-  <div className="flex items-center justify-between gap-3 py-2.5">
+  <div className="flex items-center justify-between gap-2 py-2.5 sm:gap-3">
     <div className="min-w-0">
       <p className="text-[12px] font-semibold text-slate-900">{title}</p>
       {subtitle && (
