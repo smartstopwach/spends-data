@@ -1,0 +1,191 @@
+@import "tailwindcss";
+@source "../index.template.html";
+@source "../src";
+
+@layer base {
+  :root {
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+      'Helvetica Neue', sans-serif;
+    --ink: #0f172a;
+    --muted: #64748b;
+    --line: #e5e8ee;
+    --surface: #ffffff;
+    --app-bg: #f6f7f9;
+    --brand: #4f46e5;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    /* Avoid the iOS focus-zoom jump on form fields. */
+    -webkit-tap-highlight-color: transparent;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overscroll-behavior-y: none;
+    -webkit-overflow-scrolling: touch;
+    background-color: var(--app-bg);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  * {
+    scrollbar-color: #cbd5e1 transparent;
+  }
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 12px 28px -22px rgba(15, 23, 42, 0.35);
+}
+
+.panel-flush {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+
+.field {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #fbfcfd;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.field::placeholder {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.field:focus {
+  outline: none;
+  background: #ffffff;
+  border-color: #a5b4fc;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d5dbe5;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #b9c2d0;
+}
+
+/* ── Mobile-first ergonomics ──────────────────────────────────────────── */
+
+/* 16px minimum stops iOS Safari from zooming when a field is focused. */
+@media (max-width: 767px) {
+  input,
+  select,
+  textarea,
+  .field {
+    font-size: 16px;
+  }
+
+  .field {
+    padding: 11px 12px;
+  }
+
+  /* Comfortable 44px tap targets. */
+  button,
+  [role='tab'],
+  [role='menuitem'],
+  a {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .tap-target {
+    min-height: 44px;
+  }
+
+  /* Panels sit edge to edge with tighter padding on small screens. */
+  .panel,
+  .panel-flush {
+    border-radius: 14px;
+  }
+
+  /* Horizontal chip rows scroll instead of wrapping into a ragged mess. */
+  .chip-row {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+  }
+
+  .chip-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .chip-row > * {
+    flex: 0 0 auto;
+  }
+}
+
+/* Safe areas so the bottom tab bar never covers content (iOS notch / Android). */
+.safe-bottom {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 0.5rem);
+}
+
+/* Prevent long amounts / notes from breaking the layout. */
+.truncate-amount {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.sheet-enter {
+  animation: sheet-up 0.22s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.fade-in {
+  animation: fade-in 0.16s ease-out;
+}
