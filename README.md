@@ -32,18 +32,3 @@ By default the weekly report is sent from the app (Gmail compose or EmailJS). Fo
 while the app is closed, deploy the tiny Cloudflare Worker in [`functions/`](functions/README.md)
 and paste its URL in **Reports → Background delivery → Sync schedule**. The worker runs
 hourly on a cron trigger and emails the digest at your chosen day/time.
-
-## Android app
-
-Spends Data also ships as a real Android app (Capacitor wrapper in `android/`) with
-home-screen icon, splash screen and OS-level scheduled reminders that fire even when the
-app is closed.
-
-```bash
-npm run build:mobile    # web build + cap sync
-npm run android         # open in Android Studio
-```
-
-To get an installable APK without a local Android SDK, follow
-[`docs/BUILD_APK.md`](docs/BUILD_APK.md) — it builds through GitHub Actions in a couple of
-minutes and publishes the APK to a GitHub Release.

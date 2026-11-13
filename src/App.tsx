@@ -26,12 +26,6 @@ import { useNotifications } from './hooks/useNotifications';
 import { useStorageUsage } from './hooks/useStorageUsage';
 import { shareSummary, vibrate } from './utils/notifications';
 import { composeNotification } from './utils/notificationCopy';
-import {
-  ensureNotificationPermission,
-  isNative,
-  scheduleNativeReminders,
-  shareText,
-} from './utils/native';
 import { TrendCard } from './components/TrendCard';
 import { useEmailReport } from './hooks/useEmailReport';
 import { useSpendsStore } from './hooks/useSpendsStore';
@@ -707,19 +701,6 @@ export const App: React.FC = () => {
                 },
                 preview: composeNotification('daily', notificationSnapshot),
               }}
-              nativeApp={isNative()}
-              onScheduleNativeReminders={async (enabled) => {
-                const granted = await ensureNotificationPermission();
-                if (!granted) return false;
-                return scheduleNativeReminders({
-                  enabled,
-                  hour: notifications.settings.reminderHour,
-                  daily: notifications.settings.dailyReminder,
-
-                  walletAlert: notifications.settings.walletAlerts,
-                  reportReminder: notifications.settings.reportReminder,
-                });
-              }}
               onExportCsv={() => exportTransactionsToCSV(transactions)}
               onExportBackup={() => exportBackupJSON(transactions)}
               onImportBackup={(raw) => importBackupData(raw)}
@@ -745,12 +726,6 @@ export const App: React.FC = () => {
                     `Spends ₹${week.spend.toLocaleString('en-IN')} · Balance ₹${week.walletBalance.toLocaleString('en-IN')}`
                   );
 
-                if (isNative()) {
-                  void shareText('My Spends Data summary', summary).then((ok) => {
-                    if (!ok) copyFallback();
-                  });
-                  return;
-                }
                 void shareSummary('My Spends Data summary', summary).then((shared) => {
                   if (!shared) copyFallback();
                 });

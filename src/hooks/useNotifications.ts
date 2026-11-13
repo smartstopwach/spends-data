@@ -13,7 +13,6 @@ import {
   SwSnapshot,
   composeNotification,
 } from '../utils/notificationCopy';
-import { isNative, scheduleNativeReminders } from '../utils/native';
 
 interface ReminderContext {
   spendCountToday: number;
@@ -35,17 +34,6 @@ export function useNotifications() {
   const update = useCallback((next: NotificationSettings) => {
     setSettings(next);
     saveNotificationSettings(next);
-    // On a native build, mirror the plan into OS-level scheduling so reminders
-    // still fire when the app is closed.
-    if (isNative()) {
-      void scheduleNativeReminders({
-        enabled: next.enabled,
-        hour: next.reminderHour,
-        daily: next.dailyReminder,
-        walletAlert: next.walletAlerts,
-        reportReminder: next.reportReminder,
-      });
-    }
   }, []);
 
   const requestPermission = useCallback(async () => {

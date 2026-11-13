@@ -10,24 +10,22 @@ export interface ChangelogEntry {
 export const CHANGELOG: ChangelogEntry[] = [
   {
     version: '1.2.0',
-    title: 'Weekly, month views, notifications and an Android app',
+    title: 'Weekly, month views and notifications',
     date: 'November 2026',
     items: [
       'Week / Month / All-time switcher with prev-next steppers on every screen.',
       'Dynamic notifications with action buttons, streak and insight reminders.',
       'Live notification preview in Settings, plus background reminder scheduling.',
       'Optional background email worker so weekly reports arrive without opening the app.',
-      'Real Android app (Capacitor) with home-screen icon, splash and OS-level reminders.',
       'Spends Data rebrand and all-English interface.',
     ],
   },
   {
     version: '1.1.0',
-    title: 'Installable app + email reports',
+    title: 'Email reports',
     date: 'November 2026',
     items: [
-      'Install Spends Data on your home screen — opens full screen and works offline.',
-      'New app icons, quicker startup and automatic in-app updates.',
+      'New app icons and quicker startup.',
       'Weekly spend reports with an itemised day-by-day breakdown.',
       'Pick any custom date range for a report.',
       'Smooth gradient trend chart with hover details.',

@@ -39,8 +39,6 @@ interface SettingsCardProps {
   onPersistStorage: () => Promise<boolean>;
   onShareSummary: () => void;
   onResetAll: () => void;
-  nativeApp?: boolean;
-  onScheduleNativeReminders?: (enabled: boolean) => Promise<boolean>;
 }
 
 const Row: React.FC<{
@@ -93,8 +91,6 @@ export const SettingsCard: React.FC<SettingsCardProps> = ({
   onPersistStorage,
   onShareSummary,
   onResetAll,
-  nativeApp = false,
-  onScheduleNativeReminders,
 }) => {
   const fileRef = useRef<HTMLInputElement>(null);
   const [importMessage, setImportMessage] = useState<string | null>(null);
@@ -148,28 +144,6 @@ export const SettingsCard: React.FC<SettingsCardProps> = ({
               }}
             />
           </Row>
-
-          {nativeApp && (
-            <Row
-              title="Background reminders"
-              subtitle="Scheduled inside Android — they arrive even when the app is closed."
-            >
-              <button
-                type="button"
-                onClick={async () => {
-                  const ok = await onScheduleNativeReminders?.(settings.enabled);
-                  setImportMessage(
-                    ok
-                      ? 'Background reminders scheduled on this device'
-                      : 'Could not schedule reminders — check notification permission'
-                  );
-                }}
-                className="rounded-lg bg-slate-900 px-2.5 py-1.5 text-[11px] font-bold text-white transition hover:bg-slate-800"
-              >
-                Apply
-              </button>
-            </Row>
-          )}
 
           <Row title="Daily logging reminder" subtitle={`At ${settings.reminderHour}:00 if nothing added`}>
             <Toggle
