@@ -40,22 +40,31 @@ export interface DailySpendPoint {
 export function useSpendsStore() {
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
     try {
-      const initialized = localStorage.getItem(INIT_STORAGE_KEY);
-      const saved = localStorage.getItem(TX_STORAGE_KEY);
+      const initialized = window.localStorage.getItem(INIT_STORAGE_KEY);
+      const saved = window.localStorage.getItem(TX_STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed;
+        if (Array.isArray(parsed)) {
+          return parsed.filter(
+            (item) =>
+              item &&
+              typeof item.id === 'string' &&
+              typeof item.date === 'string' &&
+              typeof item.amount === 'number' &&
+              (item.type === 'income' || item.type === 'spend')
+          );
+        }
       }
       if (!initialized) {
         const demo = createSampleTransactions(new Date());
-        localStorage.setItem(INIT_STORAGE_KEY, '1');
-        localStorage.setItem(TX_STORAGE_KEY, JSON.stringify(demo));
+        window.localStorage.setItem(INIT_STORAGE_KEY, '1');
+        window.localStorage.setItem(TX_STORAGE_KEY, JSON.stringify(demo));
         return demo;
       }
+      return [];
     } catch {
-      // ignore storage errors
+      return createSampleTransactions(new Date());
     }
-    return [];
   });
 
   const [budgets, setBudgets] = useState<MonthlyBudgets>(() => {
