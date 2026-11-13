@@ -26,6 +26,13 @@ npm run build    # builds dist/ and syncs index.html + hashed assets to the repo
 
 Pushing to the deployed branch rebuilds the site automatically. The build writes a prebuilt `index.html` plus content-hashed `assets/` at the repo root so it runs on legacy GitHub Pages without any server.
 
+## Background email (optional)
+
+By default the weekly report is sent from the app (Gmail compose or EmailJS). For delivery
+while the app is closed, deploy the tiny Cloudflare Worker in [`functions/`](functions/README.md)
+and paste its URL in **Reports → Background delivery → Sync schedule**. The worker runs
+hourly on a cron trigger and emails the digest at your chosen day/time.
+
 ## Android app
 
 Spends Data also ships as a real Android app (Capacitor wrapper in `android/`) with

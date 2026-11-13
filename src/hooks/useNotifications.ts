@@ -9,12 +9,17 @@ import {
   showAppNotification,
 } from '../utils/notifications';
 import { getTodayISO } from '../utils/mathAndFormat';
+import {
+  SwSnapshot,
+  composeNotification,
+} from '../utils/notificationCopy';
 import { isNative, scheduleNativeReminders } from '../utils/native';
 
 interface ReminderContext {
   spendCountToday: number;
   budgetUsedPercent: number;
   reportDue: boolean;
+  snapshot: SwSnapshot;
 }
 
 export function useNotifications() {
@@ -53,9 +58,35 @@ export function useNotifications() {
     return result;
   }, [update]);
 
-  const notify = useCallback(async (title: string, body: string, tag: string) => {
-    await showAppNotification(title, body, tag);
-  }, []);
+  const notify = useCallback(
+    async (input: {
+      title: string;
+      body: string;
+      tag: string;
+      kind?: 'daily' | 'budget' | 'report' | 'streak' | 'test' | 'insight';
+      actions?: Array<{ action: string; title: string }>;
+      url?: string;
+    }) => {
+      await showAppNotification(input);
+    },
+    []
+  );
+
+  /** Composes a context-aware notification from live numbers. */
+  const notifyFromSnapshot = useCallback(
+    async (kind: 'daily' | 'budget' | 'report' | 'streak' | 'insight' | 'test', snapshot: SwSnapshot) => {
+      const payload = composeNotification(kind, snapshot);
+      await showAppNotification({
+        title: payload.title,
+        body: payload.body,
+        tag: payload.tag,
+        kind: payload.kind,
+        actions: settings.richActions ? payload.actions : undefined,
+        url: (payload.data?.url as string) ?? './',
+      });
+    },
+    [settings.richActions]
+  );
 
   /**
    * Evaluates reminder rules once an environment provides fresh context:
@@ -74,11 +105,7 @@ export function useNotifications() {
         hour >= settings.reminderHour &&
         context.spendCountToday === 0
       ) {
-        void notify(
-          "Log today's spends",
-          'No entry yet today — tap to add your spends in a few seconds.',
-          'daily-reminder'
-        );
+        void notifyFromSnapshot('daily', context.snapshot);
         patches.lastDaily = today;
       }
 
@@ -88,20 +115,12 @@ export function useNotifications() {
         settings.lastBudget !== monthKey &&
         context.budgetUsedPercent >= 90
       ) {
-        void notify(
-          'Budget almost used',
-          `You have used ${Math.round(context.budgetUsedPercent)}% of this month's budget.`,
-          'budget-alert'
-        );
+        void notifyFromSnapshot('budget', context.snapshot);
         patches.lastBudget = monthKey;
       }
 
       if (settings.reportReminder && context.reportDue) {
-        void notify(
-          'Weekly report is ready',
-          'Your 7-day spend summary is waiting — send it to your email.',
-          'report-due'
-        );
+        void notifyFromSnapshot('report', context.snapshot);
       }
 
       if (Object.keys(patches).length > 0) {
@@ -109,7 +128,7 @@ export function useNotifications() {
         setSettings((prev) => ({ ...prev, ...patches }));
       }
     },
-    [settings, permission, notify, update]
+    [settings, permission, notifyFromSnapshot, update]
   );
 
   /** App icon badge (Chrome / installed PWAs). */
@@ -131,5 +150,14 @@ export function useNotifications() {
     else void nav.clearAppBadge?.();
   }, [badgeCount]);
 
-  return { settings, update, permission, requestPermission, notify, evaluate, supported: notificationsSupported() };
+  return {
+    settings,
+    update,
+    permission,
+    requestPermission,
+    notify,
+    notifyFromSnapshot,
+    evaluate,
+    supported: notificationsSupported(),
+  };
 }

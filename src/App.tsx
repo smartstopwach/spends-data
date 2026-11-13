@@ -25,6 +25,7 @@ import { useNotifications } from './hooks/useNotifications';
 import { useStorageUsage } from './hooks/useStorageUsage';
 import { usePwa } from './hooks/usePwa';
 import { shareSummary, vibrate } from './utils/notifications';
+import { composeNotification } from './utils/notificationCopy';
 import {
   ensureNotificationPermission,
   isNative,
@@ -38,7 +39,7 @@ import { APP_VERSION } from './version';
 import { useSpendsStore } from './hooks/useSpendsStore';
 import { SpendCategory, TransactionType } from './types';
 import { buildReport, resolveReportRange } from './utils/weeklyReport';
-import { exportBackupJSON, exportTransactionsToCSV } from './utils/mathAndFormat';
+import { exportBackupJSON, exportTransactionsToCSV, shiftISODate } from './utils/mathAndFormat';
 
 type View = AppView;
 
@@ -107,6 +108,49 @@ export const App: React.FC = () => {
   }, []);
 
   /** Add entry and make sure the active month shows it right away. */
+  const notificationSnapshot = useMemo(() => {
+    const todayISO = new Date();
+    const iso = `${todayISO.getFullYear()}-${String(todayISO.getMonth() + 1).padStart(
+      2,
+      '0'
+    )}-${String(todayISO.getDate()).padStart(2, '0')}`;
+
+    const dayTx = transactions.filter((tx) => tx.date === iso);
+    const week = buildReport(transactions, {
+      fromISO: shiftISODate(iso, -6),
+      toISO: iso,
+    });
+
+    // Streak: consecutive days (ending today) with at least one entry.
+    const days = new Set(transactions.map((tx) => tx.date));
+    let streak = 0;
+    for (let i = 0; i < 366; i += 1) {
+      const date = shiftISODate(iso, -i);
+      if (days.has(date)) streak += 1;
+      else if (i > 0) break;
+    }
+
+    const last = [...transactions].sort(
+      (a, b) => b.date.localeCompare(a.date) || b.createdAt - a.createdAt
+    )[0];
+
+    return {
+      todaySpend: Math.round(dayTx.filter((t) => t.type === 'spend').reduce((s, t) => s + t.amount, 0)),
+      todayIncome: Math.round(dayTx.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0)),
+      todayEntries: dayTx.length,
+      weekSpend: week.spend,
+      weekIncome: week.income,
+      monthSpend: periodAnalytics.spend,
+      monthBudget: periodAnalytics.effectiveLimit,
+      walletBalance: walletSummary.balance,
+      topCategory: week.topCategory,
+      topCategoryAmount: week.topCategoryAmount,
+      streakDays: streak,
+      lastEntryNote: last?.note ?? null,
+      lastEntryAmount: last?.amount ?? null,
+    };
+  }, [transactions, periodAnalytics, walletSummary]);
+
   const transactionsToday = useMemo(() => {
     const today = new Date();
     const iso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(
@@ -122,6 +166,7 @@ export const App: React.FC = () => {
         spendCountToday: transactionsToday,
         budgetUsedPercent: periodAnalytics.budgetUsedPercent,
         reportDue: due,
+        snapshot: notificationSnapshot,
       });
     }, 4000);
     return () => window.clearTimeout(id);
@@ -649,12 +694,9 @@ export const App: React.FC = () => {
                 onChange: notifications.update,
                 onRequestPermission: notifications.requestPermission,
                 onTest: async () => {
-                  await notifications.notify(
-                    'Spends Data',
-                    'Notifications are working. You will get reminders like this.',
-                    'test'
-                  );
+                  await notifications.notifyFromSnapshot('test', notificationSnapshot);
                 },
+                preview: composeNotification('daily', notificationSnapshot),
               }}
               nativeApp={isNative()}
               onScheduleNativeReminders={async (enabled) => {

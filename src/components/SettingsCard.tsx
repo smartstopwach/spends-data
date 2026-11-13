@@ -26,6 +26,12 @@ interface SettingsCardProps {
     onChange: (next: NotificationSettings) => void;
     onRequestPermission: () => Promise<NotificationPermission | 'unsupported'>;
     onTest: () => Promise<void>;
+    preview: {
+      title: string;
+      body: string;
+      tag: string;
+      actions?: Array<{ action: string; title: string }>;
+    } | null;
   };
   transactionCount: number;
   installed: boolean;
@@ -211,6 +217,32 @@ export const SettingsCard: React.FC<SettingsCardProps> = ({
               onClick={() => onChange({ ...settings, reportReminder: !settings.reportReminder })}
             />
           </Row>
+
+          <Row title="Streak celebration" subtitle="A nudge that keeps your logging streak alive">
+            <Toggle
+              label="Streak celebration"
+              on={settings.streakCelebration}
+              onClick={() =>
+                onChange({ ...settings, streakCelebration: !settings.streakCelebration })
+              }
+            />
+          </Row>
+
+          <Row title="Weekly insight" subtitle="Top category and biggest spend highlights">
+            <Toggle
+              label="Weekly insight"
+              on={settings.weeklyInsight}
+              onClick={() => onChange({ ...settings, weeklyInsight: !settings.weeklyInsight })}
+            />
+          </Row>
+
+          <Row title="Action buttons" subtitle="“Add spend” and “Review” inside the notification">
+            <Toggle
+              label="Rich actions"
+              on={settings.richActions}
+              onClick={() => onChange({ ...settings, richActions: !settings.richActions })}
+            />
+          </Row>
         </div>
 
         <div className="mt-3 flex gap-2">
@@ -231,6 +263,49 @@ export const SettingsCard: React.FC<SettingsCardProps> = ({
             <Vibrate className="h-3.5 w-3.5" />
           </button>
         </div>
+
+        {/* Live notification preview — looks like the real OS banner */}
+        {notifications.preview && (
+          <div className="mt-4">
+            <p className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.08em] text-slate-400">
+              Live preview · updates with your numbers
+            </p>
+            <div className="rounded-2xl bg-[linear-gradient(135deg,#0f172a,#1e293b)] p-2.5 shadow-lg shadow-slate-900/20">
+              <div className="flex items-start gap-2.5 rounded-xl bg-white/95 px-3 py-2.5">
+                <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[linear-gradient(135deg,#312E81,#4F46E5)] text-[13px] font-extrabold text-white">
+                  ₹
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="truncate text-[10px] font-bold uppercase tracking-[0.08em] text-slate-500">
+                      Spends Data
+                    </p>
+                    <span className="shrink-0 text-[9px] font-medium text-slate-400">now</span>
+                  </div>
+                  <p className="mt-0.5 truncate text-[12px] font-bold text-slate-900">
+                    {notifications.preview.title}
+                  </p>
+                  <p className="mt-0.5 line-clamp-2 text-[11px] font-medium leading-snug text-slate-600">
+                    {notifications.preview.body}
+                  </p>
+
+                  {settings.richActions && notifications.preview.actions && (
+                    <div className="mt-2 flex gap-1.5">
+                      {notifications.preview.actions.slice(0, 2).map((action) => (
+                        <span
+                          key={action.action}
+                          className="rounded-md bg-indigo-50 px-2 py-1 text-[10px] font-bold text-indigo-700"
+                        >
+                          {action.title}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </section>
 
       {/* Storage */}

@@ -8,6 +8,7 @@ import {
   Mail,
   Download,
   Send,
+  Server,
   Sparkles,
   Trash2,
 } from 'lucide-react';
@@ -27,6 +28,11 @@ import {
   resolveReportRange,
   sendReportViaEmailJS,
 } from '../utils/weeklyReport';
+import {
+  loadRemoteReportSettings,
+  pushReportSchedule,
+  saveRemoteReportSettings,
+} from '../utils/remoteReports';
 
 interface ReportSettingsCardProps {
   config: EmailReportConfig;
@@ -54,6 +60,8 @@ const Field: React.FC<{
 export const ReportSettingsCard: React.FC<ReportSettingsCardProps> = React.memo(
   ({ config, onChange, transactions, onMarkSent }) => {
     const [status, setStatus] = useState<Status>(null);
+    const [remote, setRemote] = useState(() => loadRemoteReportSettings());
+    const [remoteBusy, setRemoteBusy] = useState(false);
     const [busy, setBusy] = useState(false);
     const [showAdvanced, setShowAdvanced] = useState(
       config.delivery === 'emailjs' || emailjsReady(config)
@@ -264,6 +272,119 @@ export const ReportSettingsCard: React.FC<ReportSettingsCardProps> = React.memo(
                 ? `${range.label} · ${range.days} ${range.days === 1 ? 'day' : 'days'} · ${preview.entryCount} entries`
                 : '“From” date “To” date se pehle honi chahiye'}
             </p>
+          </div>
+
+          {/* Background delivery (worker) */}
+          <div className="mt-4 rounded-xl border border-slate-200 bg-white">
+            <div className="flex items-start justify-between gap-2 px-3.5 py-3">
+              <div className="flex items-start gap-2">
+                <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-slate-900 text-white">
+                  <Server className="h-3 w-3" />
+                </span>
+                <div>
+                  <p className="text-[12px] font-bold text-slate-900">
+                    Background delivery even when the app is closed
+                  </p>
+                  <p className="mt-0.5 text-[10px] font-medium leading-relaxed text-slate-500">
+                    Connect the optional Spends Data worker (Cloudflare, free) so the email is
+                    sent automatically — no click, no open tab.
+                  </p>
+                </div>
+              </div>
+              <span
+                className={`shrink-0 rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide ${
+                  remote.enabled
+                    ? 'bg-emerald-50 text-emerald-700'
+                    : 'bg-slate-100 text-slate-500'
+                }`}
+              >
+                {remote.enabled ? 'Connected' : 'Off'}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 gap-2 border-t border-slate-100 px-3.5 py-3 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                  Worker endpoint
+                </label>
+                <input
+                  type="url"
+                  value={remote.endpoint}
+                  onChange={(e) => {
+                    const next = { ...remote, endpoint: e.target.value };
+                    setRemote(next);
+                    saveRemoteReportSettings(next);
+                  }}
+                  placeholder="https://spends-data-email.workers.dev"
+                  className="field !py-1.5 text-[11px]"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                  Worker token (optional)
+                </label>
+                <input
+                  type="password"
+                  value={remote.token}
+                  onChange={(e) => {
+                    const next = { ...remote, token: e.target.value };
+                    setRemote(next);
+                    saveRemoteReportSettings(next);
+                  }}
+                  placeholder="shared secret"
+                  className="field !py-1.5 text-[11px]"
+                />
+              </div>
+              <div className="sm:col-span-2 flex items-center justify-between gap-2">
+                <p className="text-[10px] font-medium text-slate-500">
+                  {remote.lastSyncedAt
+                    ? `Last sync ${remote.lastSyncedAt}`
+                    : 'Nothing synced yet.'}{' '}
+                  <a
+                    href="https://github.com/smartstopwach/spends-data/blob/arena/5280413c-spends-data/functions/README.md"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-semibold text-indigo-600 hover:underline"
+                  >
+                    1-minute setup
+                  </a>
+                </p>
+                <button
+                  type="button"
+                  disabled={remoteBusy}
+                  onClick={async () => {
+                    if (!emailOk) {
+                      setStatus({ tone: 'err', message: 'Enter a valid email first.' });
+                      return;
+                    }
+                    setRemoteBusy(true);
+                    const result = await pushReportSchedule(remote, {
+                      email: config.email,
+                      weekday: config.weekday,
+                      hour: config.hour,
+                      rangeMode: config.rangeMode,
+                      customFrom: config.customFrom,
+                      customTo: config.customTo,
+                      transactions,
+                    });
+                    if (result.ok) {
+                      const next = {
+                        ...remote,
+                        enabled: true,
+                        lastSyncedAt: new Date().toLocaleString('en-IN'),
+                      };
+                      setRemote(next);
+                      saveRemoteReportSettings(next);
+                    }
+                    setStatus({ tone: result.ok ? 'ok' : 'err', message: result.message });
+                    setRemoteBusy(false);
+                  }}
+                  className="shrink-0 rounded-lg bg-slate-900 px-2.5 py-1.5 text-[11px] font-bold text-white transition hover:bg-slate-800 disabled:opacity-40"
+                >
+                  {remoteBusy ? 'Syncing…' : 'Sync schedule'}
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Delivery mode */}

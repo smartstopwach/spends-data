@@ -7,6 +7,9 @@ export interface NotificationSettings {
   budgetAlerts: boolean;
   reportReminder: boolean;
   sound: boolean;
+  streakCelebration: boolean;
+  weeklyInsight: boolean;
+  richActions: boolean;
   lastDaily: string | null;
   lastBudget: string | null;
 }
@@ -18,6 +21,9 @@ export const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
   budgetAlerts: true,
   reportReminder: true,
   sound: true,
+  streakCelebration: true,
+  weeklyInsight: true,
+  richActions: true,
   lastDaily: null,
   lastBudget: null,
 };
@@ -50,31 +56,48 @@ export function permissionState(): NotificationPermission | 'unsupported' {
   return Notification.permission;
 }
 
-/** Shows a notification through the service worker when available. */
-export async function showAppNotification(
-  title: string,
-  body: string,
-  tag: string
-): Promise<void> {
+export interface RichNotification {
+  title: string;
+  body: string;
+  tag: string;
+  kind?: 'daily' | 'budget' | 'report' | 'streak' | 'test' | 'insight';
+  actions?: Array<{ action: string; title: string }>;
+  url?: string;
+}
+
+/** Shows a rich notification through the service worker when available. */
+export async function showAppNotification(input: RichNotification): Promise<void> {
   if (!notificationsSupported() || Notification.permission !== 'granted') return;
 
-  const options: NotificationOptions & { badge?: string } = {
-    body,
-    tag,
+  type NotificationAction = { action: string; title: string; icon?: string };
+  const options: NotificationOptions & {
+    badge?: string;
+    actions?: NotificationAction[];
+    vibrate?: number[];
+  } = {
+    body: input.body,
+    tag: input.tag,
     icon: './icon-192.png',
-    badge: './favicon.png',
-    data: { url: './' },
+    badge: './icon-192.png',
+    vibrate: [12, 40, 12],
+    requireInteraction: false,
+    data: { url: input.url ?? './', kind: input.kind ?? 'test' },
+    actions: input.actions?.slice(0, 2).map((action) => ({
+      action: action.action,
+      title: action.title,
+      icon: './icon-192.png',
+    })),
   };
 
   try {
     if ('serviceWorker' in navigator) {
       const registration = await navigator.serviceWorker.getRegistration();
       if (registration) {
-        await registration.showNotification(title, options);
+        await registration.showNotification(input.title, options);
         return;
       }
     }
-    new Notification(title, options);
+    new Notification(input.title, options);
   } catch {
     // ignore
   }
