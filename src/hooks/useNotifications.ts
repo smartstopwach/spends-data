@@ -9,11 +9,12 @@ import {
   showAppNotification,
 } from '../utils/notifications';
 import { getTodayISO } from '../utils/mathAndFormat';
+import { isNative, scheduleNativeReminders } from '../utils/native';
+import { syncWebPushPrefs } from '../utils/webPush';
 import {
   SwSnapshot,
   composeNotification,
 } from '../utils/notificationCopy';
-import { isNative, scheduleNativeReminders } from '../utils/native';
 
 interface ReminderContext {
   spendCountToday: number;
@@ -45,6 +46,9 @@ export function useNotifications() {
         walletAlert: next.walletAlerts,
         reportReminder: next.reportReminder,
       });
+    } else {
+      // Keep the worker's Web Push schedule in step with these settings (no-op when off).
+      void syncWebPushPrefs(next);
     }
   }, []);
 
@@ -131,7 +135,7 @@ export function useNotifications() {
     [settings, permission, notifyFromSnapshot, update]
   );
 
-  /** App icon badge (Chrome / installed PWAs). */
+  /** App icon badge (where the browser supports it). */
   const badgeCount = useMemo(() => {
     if (!settings.enabled) return 0;
     let count = 0;

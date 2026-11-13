@@ -26,8 +26,6 @@ import { SettingsCard } from './components/SettingsCard';
 import { useNotifications } from './hooks/useNotifications';
 import { useStorageUsage } from './hooks/useStorageUsage';
 import { usePwa } from './hooks/usePwa';
-import { shareSummary, vibrate } from './utils/notifications';
-import { composeNotification } from './utils/notificationCopy';
 import {
   ensureNotificationPermission,
   isNative,
@@ -36,6 +34,8 @@ import {
 } from './utils/native';
 import { PwaBanners } from './components/PwaBanners';
 import { DownloadPage } from './components/DownloadPage';
+import { shareSummary, vibrate } from './utils/notifications';
+import { composeNotification } from './utils/notificationCopy';
 import { TrendCard } from './components/TrendCard';
 import { useEmailReport } from './hooks/useEmailReport';
 import { useSpendsStore } from './hooks/useSpendsStore';
@@ -229,6 +229,7 @@ export const App: React.FC = () => {
                 their own row below so nothing is squeezed. */}
             <div className="hidden items-center gap-1.5 md:flex">
               <AppNav
+                variant="desktop"
                 view={view}
                 onNavigate={goTo}
                 counts={{
@@ -353,6 +354,17 @@ export const App: React.FC = () => {
           </div>
         </div>
       </header>
+
+      {/* Phone bottom tab bar. Rendered outside the header so its fixed positioning works. */}
+      <AppNav
+        variant="mobile"
+        view={view}
+        onNavigate={goTo}
+        counts={{
+          transactions: periodTransactions.length,
+          reports: reportConfig.enabled ? 1 : 0,
+        }}
+      />
 
       {hasDemoEntries && (
         <div className="border-b border-indigo-200 bg-indigo-50/70">
@@ -716,6 +728,18 @@ export const App: React.FC = () => {
               storage={storage}
               transactionCount={transactions.length}
               installed={pwa.installed}
+              nativeApp={isNative()}
+              onScheduleNativeReminders={async (enabled) => {
+                const granted = await ensureNotificationPermission();
+                if (!granted) return false;
+                return scheduleNativeReminders({
+                  enabled,
+                  hour: notifications.settings.reminderHour,
+                  daily: notifications.settings.dailyReminder,
+                  walletAlert: notifications.settings.walletAlerts,
+                  reportReminder: notifications.settings.reportReminder,
+                });
+              }}
               onOpenDownload={() => goTo('download')}
               notifications={{
                 settings: notifications.settings,
@@ -727,19 +751,6 @@ export const App: React.FC = () => {
                   await notifications.notifyFromSnapshot('test', notificationSnapshot);
                 },
                 preview: composeNotification('daily', notificationSnapshot),
-              }}
-              nativeApp={isNative()}
-              onScheduleNativeReminders={async (enabled) => {
-                const granted = await ensureNotificationPermission();
-                if (!granted) return false;
-                return scheduleNativeReminders({
-                  enabled,
-                  hour: notifications.settings.reminderHour,
-                  daily: notifications.settings.dailyReminder,
-
-                  walletAlert: notifications.settings.walletAlerts,
-                  reportReminder: notifications.settings.reportReminder,
-                });
               }}
               onExportCsv={() => exportTransactionsToCSV(transactions)}
               onExportBackup={() => exportBackupJSON(transactions)}

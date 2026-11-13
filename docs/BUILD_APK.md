@@ -8,19 +8,25 @@ package downloads are blocked). Two ways to get the APK — both take a few minu
 
 ## Option 1 — GitHub Actions (recommended, produces a downloadable APK for your phone)
 
-**One-time setup (2 minutes):**
+**Setup:** the workflow runs on every push that touches the app. The working copy is
+[`ci/android-release.yml`](../ci/android-release.yml). Copy it over
+`.github/workflows/android-release.yml` once (GitHub web UI → open the file → pencil icon →
+paste → commit). The session's GitHub App is not allowed to change workflow files, which is
+why this one step is manual. Then:
 
-1. Create the folder `.github/workflows/` in the repo (GitHub website → **Add file → Create
-   new file** → type `.github/workflows/android-release.yml`).
-2. Paste the contents of [`ci/android-release.yml`](../ci/android-release.yml) and commit.
-   > The GitHub App used by this session is not allowed to create workflow files, which is
-   > why the file lives in `ci/` for you to move. Any owner/maintainer can do it in the UI.
-3. Open the **Actions** tab → **Build Android app** → **Run workflow**.
+1. Open the **Actions** tab → **Build Android app** → **Run workflow**.
+2. When it is green, the GitHub Release `android-v<version>` exists and the
+   **Download APK** button in the app's Download tab turns into a real download.
 
 **What you get:**
 
-- Artifacts: `spends-data-<version>-debug.apk` and `spends-data-<version>-release.aab`
-- A GitHub **Release** tagged `android-v<version>` with both files attached.
+- Artifacts: `spends-data-<version>-debug.apk`, `spends-data-android.apk` and `spends-data-<version>-release.aab`
+- A GitHub **Release** tagged `android-v<version>` with the files attached. It is marked *latest*.
+- `spends-data-android.apk` has a fixed name, so the website's **Download APK** button
+  (`src/utils/appDownload.ts`) always points to the newest build:
+  `https://github.com/smartstopwach/spends-data/releases/latest/download/spends-data-android.apk`.
+
+The APK is **not** committed to Git. It lives on the release, which keeps the repo small.
 
 **Install on your phone:** open the release on the phone, download the `.apk`, tap it and
 allow *install from unknown sources*. That's the real app — home-screen icon, splash screen,

@@ -1,4 +1,5 @@
 import { Capacitor } from '@capacitor/core';
+import { REMINDER_IDS, REPORT_REMINDER_SLOT, WALLET_ALERT_SLOT } from './reminderPlan';
 
 /**
  * Thin wrapper around Capacitor plugins so the web build keeps working
@@ -98,7 +99,7 @@ export interface NativeReminderPlan {
   reportReminder: boolean;
 }
 
-const NOTIFICATION_IDS = { daily: 1001, wallet: 1002, report: 1003 };
+const NOTIFICATION_IDS = REMINDER_IDS;
 const CHANNEL_ID = 'spends-data-reminders';
 
 export async function ensureNotificationPermission(): Promise<boolean> {
@@ -173,7 +174,7 @@ export async function scheduleNativeReminders(plan: NativeReminderPlan): Promise
         body: 'Open Spends Data to see how much is left this month.',
         channelId: CHANNEL_ID,
         schedule: {
-          on: { hour: 20, minute: 30, weekday: 6 },
+          on: { hour: WALLET_ALERT_SLOT.hour, minute: WALLET_ALERT_SLOT.minute, weekday: WALLET_ALERT_SLOT.weekday },
           repeats: true,
           allowWhileIdle: true,
         },
@@ -189,7 +190,7 @@ export async function scheduleNativeReminders(plan: NativeReminderPlan): Promise
         body: 'Your 7-day spend summary is ready to email.',
         channelId: CHANNEL_ID,
         schedule: {
-          on: { hour: 10, minute: 0, weekday: 2 },
+          on: { hour: REPORT_REMINDER_SLOT.hour, minute: REPORT_REMINDER_SLOT.minute, weekday: REPORT_REMINDER_SLOT.weekday },
           repeats: true,
           allowWhileIdle: true,
         },

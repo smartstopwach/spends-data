@@ -1,5 +1,5 @@
 /* Spends Data service worker — offline shell + instant updates. */
-const VERSION = 'spends-data-v1.2.0';
+const VERSION = 'spends-data-v1.4.0';
 const SHELL_CACHE = `${VERSION}-shell`;
 const ASSET_CACHE = `${VERSION}-assets`;
 const SHELL_FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png'];
@@ -89,15 +89,41 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
+/* Web Push: the worker sends a JSON payload { title, body, tag, url } even when the app is closed. */
+self.addEventListener('push', (event) => {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch {
+    data = { body: event.data ? event.data.text() : '' };
+  }
+  const title = data.title || 'Spends Data';
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body: data.body || '',
+      tag: data.tag || 'spends-data',
+      icon: './icon-192.png',
+      badge: './icon-192.png',
+      vibrate: [12, 40, 12],
+      data: { url: data.url || './' },
+    })
+  );
+});
+
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
+  const target = (event.notification.data && event.notification.data.url) || './';
   event.waitUntil(
     (async () => {
       const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
       for (const client of all) {
-        if ('focus' in client) return client.focus();
+        if ('focus' in client) {
+          await client.focus();
+          if ('navigate' in client) await client.navigate(new URL(target, self.location.href).href).catch(() => undefined);
+          return;
+        }
       }
-      return self.clients.openWindow('./');
+      return self.clients.openWindow(target);
     })()
   );
 });

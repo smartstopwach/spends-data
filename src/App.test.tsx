@@ -56,14 +56,48 @@ describe('Active state & dummy data hygiene', () => {
 });
 
 describe('Download tab', () => {
-  it('offers both native and website install', () => {
+  it('links the Android APK from the latest GitHub release', () => {
     const html = renderToString(
       React.createElement(DownloadPage, {
-        pwa: { install: async () => {}, installed: false, manualSteps: null },
+        pwa: {
+          install: async () => 'manual' as const,
+          installed: false,
+          canNativePrompt: false,
+          platform: 'desktop' as const,
+        },
       })
     );
-    expect(html).toContain('Android app (APK)');
-    expect(html).toContain('Install this website');
-    expect(html).toContain('All releases');
+    expect(html).toContain('Download APK');
+    expect(html).toContain('releases/latest/download/spends-data-android.apk');
+  });
+
+  it('offers the one-tap app download', () => {
+    const html = renderToString(
+      React.createElement(DownloadPage, {
+        pwa: {
+          install: async () => 'manual' as const,
+          installed: false,
+          canNativePrompt: false,
+          platform: 'desktop' as const,
+        },
+      })
+    );
+    expect(html).toContain('Download app');
+    expect(html).toContain('Spends Data app');
+  });
+
+  it('shows the installed state', () => {
+    const html = renderToString(
+      React.createElement(DownloadPage, {
+        pwa: {
+          install: async () => 'installed' as const,
+          installed: true,
+          canNativePrompt: false,
+          platform: 'installed' as const,
+        },
+      })
+    );
+    expect(html).toContain('Installed on this device');
+    expect(html).not.toMatch(/<button[^>]*>[\s\S]*?Download app<\/button>/);
   });
 });
