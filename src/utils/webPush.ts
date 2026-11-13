@@ -84,9 +84,23 @@ function urlBase64ToUint8Array(value: string): Uint8Array {
   return Uint8Array.from(raw, (char) => char.charCodeAt(0));
 }
 
+/** Service worker registration, or null when none becomes active within a few seconds. */
+async function readyRegistration(timeoutMs = 3000): Promise<ServiceWorkerRegistration | null> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<null>((resolve) => {
+    timer = setTimeout(() => resolve(null), timeoutMs);
+  });
+  try {
+    return await Promise.race([navigator.serviceWorker.ready, timeout]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export async function currentSubscription(): Promise<PushSubscription | null> {
   if (!webPushSupported()) return null;
-  const registration = await navigator.serviceWorker.ready;
+  const registration = await readyRegistration();
+  if (!registration) return null;
   return registration.pushManager.getSubscription();
 }
 
@@ -122,7 +136,10 @@ export async function enableWebPush(prefs: PushPrefs): Promise<{ ok: boolean; me
       return { ok: false, message: 'The worker has no push keys yet. See functions/README.md (VAPID).' };
     }
 
-    const registration = await navigator.serviceWorker.ready;
+    const registration = await readyRegistration(10000);
+    if (!registration) {
+      return { ok: false, message: 'The app is still starting. Try again in a moment.' };
+    }
     const subscription =
       (await registration.pushManager.getSubscription()) ??
       (await registration.pushManager.subscribe({
