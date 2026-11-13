@@ -36,9 +36,7 @@ interface SettingsCardProps {
   };
   transactionCount: number;
   installed: boolean;
-  canInstall: boolean;
-  onInstall: () => void;
-  installHint?: string | null;
+  onOpenDownload: () => void;
   /** Inline monthly budget editor (no hard-coded default anywhere). */
   monthlyBudget: number;
   onSaveBudget: (amount: number) => void;
@@ -97,9 +95,7 @@ export const SettingsCard: React.FC<SettingsCardProps> = ({
   notifications,
   transactionCount,
   installed,
-  canInstall,
-  onInstall,
-  installHint = null,
+  onOpenDownload,
   monthlyBudget,
   onSaveBudget,
   onExportCsv,
@@ -488,36 +484,24 @@ export const SettingsCard: React.FC<SettingsCardProps> = ({
 
         <div className="mt-3 divide-y divide-slate-100">
           <Row
-            title={installed ? 'Installed on this device' : 'Install app'}
+            title={installed ? 'App installed' : 'Download app'}
             subtitle={
               installed
-                ? 'Opens full screen and works offline.'
-                : canInstall
-                ? 'Add to your home screen for an app-like experience.'
-                : 'Tap Install and follow the step shown — works in every browser.'
+                ? 'Open the download options to reinstall or get the Android build.'
+                : 'Choose the native Android app or install this website — both go offline.'
             }
           >
-            {installed ? (
-              <span className="flex items-center gap-1 rounded-lg bg-emerald-50 px-2.5 py-1.5 text-[11px] font-bold text-emerald-700">
-                <Check className="h-3 w-3" />
-                Installed
-              </span>
-            ) : (
-              <button
-                type="button"
-                onClick={onInstall}
-                className="rounded-lg bg-indigo-600 px-2.5 py-1.5 text-[11px] font-bold text-white transition hover:bg-indigo-700"
-              >
-                Install
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={onOpenDownload}
+              className="flex h-9 items-center gap-1.5 rounded-lg bg-indigo-600 px-3 text-[11px] font-bold text-white transition hover:bg-indigo-700"
+            >
+              <Download className="h-3 w-3" />
+              Download
+            </button>
           </Row>
 
-          {installHint && !installed && (
-            <p className="pb-2 text-[11px] font-semibold leading-relaxed text-indigo-700">
-              {installHint}
-            </p>
-          )}
+
 
           <Row
             title="Monthly budget"
