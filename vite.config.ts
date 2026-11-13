@@ -37,17 +37,14 @@ export default defineConfig(({ command }) => ({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    target: 'es2020',
+    cssMinify: true,
     rollupOptions: {
       input: path.resolve(__dirname, 'index.template.html'),
       output: {
-        entryFileNames: 'assets/app.js',
-        chunkFileNames: 'assets/[name].js',
-        assetFileNames: (assetInfo) => {
-          if (assetInfo.names?.some((n) => n.endsWith('.css'))) {
-            return 'assets/app.css';
-          }
-          return 'assets/[name][extname]';
-        },
+        entryFileNames: 'assets/app-[hash].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/app-[hash][extname]',
       },
     },
   },

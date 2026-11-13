@@ -10,15 +10,18 @@ const rootIndexHtml = path.join(root, 'index.html');
 const distAssets = path.join(distDir, 'assets');
 const rootAssets = path.join(root, 'assets');
 
+// Clean previous root assets BEFORE build so Tailwind v4 never scans minified JS bundles
+fs.rmSync(rootAssets, { recursive: true, force: true });
+fs.rmSync(distDir, { recursive: true, force: true });
+
 execSync('npx tsc -b && npx vite build', { stdio: 'inherit' });
 
 if (fs.existsSync(distTemplateHtml)) {
   fs.renameSync(distTemplateHtml, distIndexHtml);
 }
 
-// Also sync built static files to repo root so GitHub Pages (branch root "/") works directly
+// Sync hashed static build to repo root so GitHub Pages ("/") serves fresh assets without cache issues
 fs.copyFileSync(distIndexHtml, rootIndexHtml);
-fs.rmSync(rootAssets, { recursive: true, force: true });
 fs.cpSync(distAssets, rootAssets, { recursive: true });
 
-console.log('✓ Built dist/ AND synced static bundle (index.html + assets/) to repository root for GitHub Pages.');
+console.log('✓ Optimized build complete: synced hashed index.html + assets/ to root and dist/.');
