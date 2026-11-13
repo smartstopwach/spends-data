@@ -200,9 +200,9 @@ export function useSpendsStore() {
       if (parsed?.budgets && typeof parsed.budgets === 'object') {
         setBudgets(parsed.budgets);
       }
-      return { ok: true, message: `${validTx.length} entries successfully restore ho gayin!` };
+      return { ok: true, message: `${validTx.length} entries restored successfully!` };
     } catch {
-      return { ok: false, message: 'JSON file read nahi ho payi. Valid backup file chunein.' };
+      return { ok: false, message: 'Could not read that JSON file. Choose a valid backup.' };
     }
   }, []);
 

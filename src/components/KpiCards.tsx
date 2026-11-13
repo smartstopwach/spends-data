@@ -78,7 +78,7 @@ export const KpiCards: React.FC<KpiCardsProps> = React.memo(
       <article className="rounded-2xl panel p-4 sm:p-5">
         <div className="flex items-start justify-between gap-2">
           <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-500">
-            Ghar Se Aaya
+            Money In
           </p>
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
             <ArrowDownLeft className="h-4 w-4" />

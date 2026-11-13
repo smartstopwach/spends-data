@@ -36,7 +36,7 @@ export function shiftMonthKey(monthKey: string, delta: number): string {
 }
 
 export function formatMonthLabel(monthKey: string): string {
-  if (monthKey === 'all') return 'All Time (Kul Hisaab)';
+  if (monthKey === 'all') return 'All time';
   const [yearStr, monthStr] = monthKey.split('-');
   const dt = new Date(Number(yearStr), Number(monthStr) - 1, 1);
   return dt.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
@@ -89,7 +89,7 @@ export function evaluateAmountExpression(raw: string): {
       valid: false,
       value: null,
       isExpression: true,
-      error: 'Sirf numbers aur + - * / use karein',
+      error: 'Use numbers and + - * / only',
     };
   }
 
@@ -113,7 +113,7 @@ export function evaluateAmountExpression(raw: string): {
       const op = cleaned[pos++];
       const right = parseFactor();
       if (op === '/') {
-        if (right === 0) throw new Error('Zero se divide nahi ho sakta');
+        if (right === 0) throw new Error('Cannot divide by zero');
         val = val / right;
       } else {
         val = val * right;
@@ -134,7 +134,7 @@ export function evaluateAmountExpression(raw: string): {
     if (cleaned[pos] === '(') {
       pos++;
       const val = parseExpression();
-      if (cleaned[pos] !== ')') throw new Error('Bracket close karein');
+      if (cleaned[pos] !== ')') throw new Error('Close the bracket');
       pos++;
       return val;
     }
@@ -157,7 +157,7 @@ export function evaluateAmountExpression(raw: string): {
     }
     const rounded = Math.round(result * 100) / 100;
     if (rounded <= 0) {
-      return { valid: false, value: rounded, isExpression, error: 'Amount ₹0 se zyada hona chahiye' };
+      return { valid: false, value: rounded, isExpression, error: 'Amount must be greater than ₹0' };
     }
     return { valid: true, value: rounded, isExpression };
   } catch (err) {
@@ -170,7 +170,7 @@ export function evaluateAmountExpression(raw: string): {
   }
 }
 
-export function exportTransactionsToCSV(transactions: Transaction[], filename = 'ghar-ka-hisaab.csv'): void {
+export function exportTransactionsToCSV(transactions: Transaction[], filename = 'spends-data.csv'): void {
   const headers = ['Date', 'Type', 'Category/Source', 'Amount (INR)', 'Signed Amount', 'Payment Mode', 'Note'];
   const sorted = [...transactions].sort((a, b) => b.date.localeCompare(a.date) || b.createdAt - a.createdAt);
 
@@ -184,7 +184,7 @@ export function exportTransactionsToCSV(transactions: Transaction[], filename = 
 
   const rows = sorted.map((t) => {
     const meta = ALL_CATEGORY_MAP[t.category];
-    const typeLabel = t.type === 'income' ? 'Ghar se Aaya (+)' : 'Spend (-)';
+    const typeLabel = t.type === 'income' ? 'Money In (+)' : 'Spend (-)';
     const signed = t.type === 'income' ? t.amount : -t.amount;
     return [
       t.date,
@@ -206,14 +206,14 @@ export function exportTransactionsToCSV(transactions: Transaction[], filename = 
 
 export function exportBackupJSON(transactions: Transaction[], budgets: MonthlyBudgets): void {
   const payload = {
-    app: 'GharKaHisaab',
+    app: 'Spends Data',
     version: 1,
     exportedAt: new Date().toISOString(),
     transactions,
     budgets,
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-  triggerDownload(blob, `ghar-ka-hisaab-backup-${getTodayISO()}.json`);
+  triggerDownload(blob, `spends-data-backup-${getTodayISO()}.json`);
 }
 
 function triggerDownload(blob: Blob, filename: string): void {

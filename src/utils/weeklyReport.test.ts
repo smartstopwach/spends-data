@@ -42,10 +42,10 @@ describe('buildWeeklyReport', () => {
     expect(report.days).toBe(7);
     expect(report.categories[0].label).toBe('Food & Chai');
     expect(report.walletBalance).toBe(-9499);
-    expect(report.subject).toContain('GharKaHisaab');
+    expect(report.subject).toContain('Spends Data');
     expect(report.text).toContain('Daily avg');
     expect(report.html).toContain('Spend Report');
-    expect(report.html).toContain('Karcha kaise hua');
+    expect(report.html).toContain('How the money was spent');
   });
 
   it('handles an empty week gracefully', () => {
@@ -82,7 +82,7 @@ describe('report scheduling', () => {
   });
 });
 
-describe('itemised report (karcha kaise hua)', () => {
+describe('itemised report (how the money was spent)', () => {
   const data: Transaction[] = [
     tx('2026-11-13', 200, 'spend'),
     tx('2026-11-13', 60, 'spend', 'travel'),
@@ -99,9 +99,9 @@ describe('itemised report (karcha kaise hua)', () => {
     expect(report.dayGroups[1].income).toBe(500);
     expect(report.entryCount).toBe(4);
     expect(report.biggestSpend?.amount).toBe(1000);
-    expect(report.text).toContain('KARCHA KAISE HUA');
+    expect(report.text).toContain('HOW THE MONEY WAS SPENT');
     expect(report.text).toContain('Rent & PG/Mess');
-    expect(report.html).toContain('Karcha kaise hua');
+    expect(report.html).toContain('How the money was spent');
   });
 
   it('honours an arbitrary from → to range', () => {

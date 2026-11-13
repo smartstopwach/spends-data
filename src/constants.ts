@@ -74,7 +74,7 @@ export const SPEND_CATEGORIES: CategoryMeta[] = [
   {
     id: 'other',
     label: 'Other Spend',
-    sublabel: 'Misc Kharcha',
+    sublabel: 'Miscellaneous',
     color: '#64748b',
     bgClass: 'bg-slate-100',
     textClass: 'text-slate-700',
@@ -86,8 +86,8 @@ export const SPEND_CATEGORIES: CategoryMeta[] = [
 export const INCOME_SOURCES: CategoryMeta[] = [
   {
     id: 'home',
-    label: 'Ghar Se Aaya',
-    sublabel: 'Papa / Mummy / Home Money',
+    label: 'Money In',
+    sublabel: 'Home / family allowance',
     color: '#059669',
     bgClass: 'bg-emerald-50',
     textClass: 'text-emerald-700',
@@ -96,8 +96,8 @@ export const INCOME_SOURCES: CategoryMeta[] = [
   },
   {
     id: 'family_gift',
-    label: 'Relatives / Gift',
-    sublabel: 'Festival Shagun / Didi-Bhaiya',
+    label: 'Gift / Relatives',
+    sublabel: 'Festival gift / relatives',
     color: '#0d9488',
     bgClass: 'bg-teal-50',
     textClass: 'text-teal-700',
@@ -106,8 +106,8 @@ export const INCOME_SOURCES: CategoryMeta[] = [
   },
   {
     id: 'stipend',
-    label: 'Stipend / Earning',
-    sublabel: 'Scholarship, Freelance, Work',
+    label: 'Stipend / Earnings',
+    sublabel: 'Scholarship, freelance, work',
     color: '#2563eb',
     bgClass: 'bg-blue-50',
     textClass: 'text-blue-700',
@@ -116,8 +116,8 @@ export const INCOME_SOURCES: CategoryMeta[] = [
   },
   {
     id: 'refund',
-    label: 'Refund / Return',
-    sublabel: 'Friend Wapas Kiya / Cashback',
+    label: 'Refund',
+    sublabel: 'Refund / cashback',
     color: '#7c3aed',
     bgClass: 'bg-purple-50',
     textClass: 'text-purple-700',
@@ -127,7 +127,7 @@ export const INCOME_SOURCES: CategoryMeta[] = [
   {
     id: 'carryover',
     label: 'Opening Balance',
-    sublabel: 'Pehle se bacha hua paisa',
+    sublabel: 'Carried over savings',
     color: '#475569',
     bgClass: 'bg-slate-100',
     textClass: 'text-slate-700',
@@ -183,7 +183,7 @@ export function createSampleTransactions(referenceDate: Date = new Date()): Tran
       category: 'carryover',
       paymentMode: 'upi',
       date: fmtDate(year, month - 1, 28),
-      note: 'Pichle mahine ka bacha balance',
+      note: 'Carried over from last month',
     },
     {
       type: 'income',
@@ -191,7 +191,7 @@ export function createSampleTransactions(referenceDate: Date = new Date()): Tran
       category: 'home',
       paymentMode: 'bank',
       date: fmtDate(year, month, 1),
-      note: 'Papa ne monthly kharcha bheja',
+      note: 'Monthly allowance from home',
     },
     {
       type: 'spend',

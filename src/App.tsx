@@ -127,10 +127,10 @@ export const App: React.FC = () => {
             </div>
             <div className="min-w-0">
               <p className="truncate text-[13px] font-bold leading-tight text-slate-900">
-                GharKaHisaab
+                Spends Data
               </p>
               <p className="hidden truncate text-[10px] font-medium uppercase tracking-[0.1em] text-slate-400 sm:block">
-                Expense Console
+                Expense Tracker
               </p>
             </div>
           </div>
@@ -162,7 +162,7 @@ export const App: React.FC = () => {
                 }`}
               >
                 <ListOrdered className="h-3 w-3" />
-                <span>Recent Hisaab</span>
+                <span>Ledger</span>
                 <span
                   className={`num rounded px-1 text-[10px] font-bold ${
                     view === 'ledger' ? 'bg-white/20 text-white' : 'bg-slate-200/80 text-slate-600'
@@ -332,7 +332,7 @@ export const App: React.FC = () => {
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5">
             <p className="flex items-center gap-2 text-[11px] font-semibold text-amber-900">
               <Bell className="h-3.5 w-3.5 shrink-0 text-amber-600" />
-              Aapka weekly spends report due hai — {reportConfig.email} par bhejne ka time ho gaya.
+              Your weekly spend report is due — time to send it to {reportConfig.email}.
             </p>
             <button
               type="button"
@@ -365,7 +365,7 @@ export const App: React.FC = () => {
                   onClick={() => handleQuickAdd('income')}
                   className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-emerald-700 shadow-sm transition hover:border-emerald-200 hover:bg-emerald-50"
                 >
-                  + Ghar se paisa
+                  + money in
                 </button>
                 <button
                   type="button"
@@ -429,7 +429,7 @@ export const App: React.FC = () => {
           </>
         ) : view === 'ledger' ? (
           <>
-            {/* ── Recent Hisaab — dedicated section ─────────── */}
+            {/* ── Ledger — dedicated section ─────────── */}
             <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
               <div>
                 <button
@@ -442,7 +442,7 @@ export const App: React.FC = () => {
                 </button>
                 <h1 className="flex items-center gap-2 text-lg font-bold tracking-tight text-slate-900 sm:text-xl">
                   <ListOrdered className="h-4 w-4 text-indigo-500" />
-                  Recent Hisaab
+                  Recent entries
                 </h1>
                 <p className="mt-1 text-[12px] font-medium text-slate-500">
                   {monthLabel} · full ledger with filters, search and sorting
@@ -523,7 +523,7 @@ export const App: React.FC = () => {
                   Reports
                 </h1>
                 <p className="mt-1 text-[12px] font-medium text-slate-500">
-                  Har hafte apne spends ka summary email par — choose your Gmail below.
+                  Weekly spend summary delivered to your Gmail — choose your address below.
                 </p>
               </div>
 
@@ -554,12 +554,12 @@ export const App: React.FC = () => {
                   <ol className="mt-3 space-y-3">
                     {[
                       {
-                        title: 'Apna Gmail daalein',
-                        body: 'Sirf email address — koi password ya login nahi. Data browser mein hi rehta hai.',
+                        title: 'Add your Gmail',
+                        body: 'Only an email address — no password or login. Your data stays in this browser.',
                       },
                       {
-                        title: 'Din aur time chunein',
-                        body: 'Har hafte usi din reminder milega (last 7 days ka spend digest ready hoga).',
+                        title: 'Pick a day and time',
+                        body: 'You get a reminder on that day each week, with the last 7 days ready to send.',
                       },
                       {
                         title: 'Send now dabayein',
@@ -585,9 +585,8 @@ export const App: React.FC = () => {
                       Privacy
                     </p>
                     <p className="mt-1 text-[11px] font-medium leading-relaxed text-slate-600">
-                      GharKaHisaab static app hai — koi server nahi. Aapke transactions
-                      localStorage mein rehte hain, aur email tab hi banti hai jab aap khud Send
-                      karte hain.
+                      Spends Data is a static app with no server. Your transactions stay in
+                      localStorage, and an email is only created when you press Send yourself.
                     </p>
                   </div>
                 </section>
@@ -627,12 +626,12 @@ export const App: React.FC = () => {
 
                   <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50/70 p-3">
                     <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-slate-400">
-                      Mail mein kya jayega
+                      What the email contains
                     </p>
                     <ul className="mt-1.5 space-y-1 text-[11px] font-medium text-slate-600">
                       <li>• Summary: money in, spends, net, balance</li>
                       <li>• Category-wise breakdown with bars</li>
-                      <li>• Day by day karcha — har entry ke saath</li>
+                      <li>• Day-by-day spending with every entry</li>
                       <li>• Biggest category &amp; biggest single spend</li>
                     </ul>
                   </div>
@@ -643,7 +642,7 @@ export const App: React.FC = () => {
         )}
 
         <footer className="mt-8 flex flex-wrap items-center justify-between gap-2 border-t border-slate-200/80 pt-4 text-[11px] font-medium text-slate-400">
-          <span>GharKaHisaab · offline-first expense console</span>
+          <span>Spends Data · offline-first expense tracker</span>
           <span className="num">
             {transactions.length} total records · balance{' '}
             {walletSummary.balance >= 0 ? 'positive' : 'negative'}

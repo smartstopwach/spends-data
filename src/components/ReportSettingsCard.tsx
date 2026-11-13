@@ -75,7 +75,7 @@ export const ReportSettingsCard: React.FC<ReportSettingsCardProps> = React.memo(
 
     const handleGmail = () => {
       if (!emailOk) {
-        setStatus({ tone: 'err', message: 'Pehle valid Gmail address daalein.' });
+        setStatus({ tone: 'err', message: 'Enter a valid Gmail address first.' });
         return;
       }
       openGmailCompose(preview, config.email);
@@ -88,15 +88,15 @@ export const ReportSettingsCard: React.FC<ReportSettingsCardProps> = React.memo(
 
     const handleEmailJS = async () => {
       if (!emailOk) {
-        setStatus({ tone: 'err', message: 'Pehle valid Gmail address daalein.' });
+        setStatus({ tone: 'err', message: 'Enter a valid Gmail address first.' });
         return;
       }
       if (!emailjsReady(config)) {
-        setStatus({ tone: 'err', message: 'EmailJS Service ID, Template ID aur Public Key bharein.' });
+        setStatus({ tone: 'err', message: 'Fill in the EmailJS Service ID, Template ID and Public Key.' });
         return;
       }
       setBusy(true);
-      setStatus({ tone: 'info', message: 'Weekly report bheja ja raha hai…' });
+      setStatus({ tone: 'info', message: 'Sending weekly report…' });
       try {
         await sendReportViaEmailJS(preview, config.email, config.emailjs);
         onMarkSent(preview.toISO);
@@ -107,7 +107,7 @@ export const ReportSettingsCard: React.FC<ReportSettingsCardProps> = React.memo(
           message:
             err instanceof Error
               ? `Send fail: ${err.message}`
-              : 'Send fail — EmailJS settings check karein.',
+              : 'Send failed — check your EmailJS settings.',
         });
       } finally {
         setBusy(false);
@@ -125,7 +125,7 @@ export const ReportSettingsCard: React.FC<ReportSettingsCardProps> = React.memo(
             <div>
               <h2 className="text-sm font-semibold text-slate-900">Weekly Email Report</h2>
               <p className="mt-0.5 text-xs font-medium text-slate-500">
-                Last 7 days ka spends digest apne Gmail par — every week.
+                Last 7 days of spending, delivered to your Gmail every week.
               </p>
             </div>
           </div>
@@ -156,7 +156,7 @@ export const ReportSettingsCard: React.FC<ReportSettingsCardProps> = React.memo(
             <div className="sm:col-span-2">
               <Field
                 label="Send to (Gmail)"
-                hint="Aapka data sirf aapke browser mein rehta hai — mail aap khud bhejte hain."
+                hint="Your data stays in this browser — you send the email yourself."
               >
                 <div className="relative">
                   <Mail className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
@@ -176,7 +176,7 @@ export const ReportSettingsCard: React.FC<ReportSettingsCardProps> = React.memo(
               {config.email && !emailOk && (
                 <p className="mt-1 flex items-center gap-1 text-[10px] font-semibold text-rose-600">
                   <AlertCircle className="h-3 w-3" />
-                  Valid email address daalein
+                  Enter a valid email address
                 </p>
               )}
             </div>
@@ -288,7 +288,7 @@ export const ReportSettingsCard: React.FC<ReportSettingsCardProps> = React.memo(
                   )}
                 </span>
                 <span className="mt-1 block text-[10px] font-medium leading-relaxed text-slate-500">
-                  Ek click par Gmail compose khulega, pre-filled report ke saath — bas Send dabayein.
+                  One click opens Gmail compose with the report pre-filled — just press Send.
                 </span>
               </button>
 
@@ -311,7 +311,7 @@ export const ReportSettingsCard: React.FC<ReportSettingsCardProps> = React.memo(
                   )}
                 </span>
                 <span className="mt-1 block text-[10px] font-medium leading-relaxed text-slate-500">
-                  Free EmailJS account se har hafte bina click ke mail chala jayega.
+                  With a free EmailJS account the email goes out every week with no clicks.
                 </span>
               </button>
             </div>
@@ -371,7 +371,7 @@ export const ReportSettingsCard: React.FC<ReportSettingsCardProps> = React.memo(
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-0.5 font-semibold text-indigo-600 hover:underline"
                     >
-                      Free account banayein
+                      Create a free account
                       <ExternalLink className="h-2.5 w-2.5" />
                     </a>
                   </p>
@@ -394,7 +394,7 @@ export const ReportSettingsCard: React.FC<ReportSettingsCardProps> = React.memo(
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `ghar-ka-hisaab-${preview.fromISO}_to_${preview.toISO}.txt`;
+                    a.download = `spends-data-${preview.fromISO}_to_${preview.toISO}.txt`;
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
@@ -452,7 +452,7 @@ export const ReportSettingsCard: React.FC<ReportSettingsCardProps> = React.memo(
               ))}
               {preview.categories.length === 0 && (
                 <li className="text-[11px] font-medium text-slate-400">
-                  Is period mein koi spend nahi 🎉
+                  No spending in this period 🎉
                 </li>
               )}
             </ul>
@@ -460,13 +460,13 @@ export const ReportSettingsCard: React.FC<ReportSettingsCardProps> = React.memo(
             {/* itemised day-by-day ledger */}
             <div className="mt-3 border-t border-slate-100 pt-2.5">
               <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-slate-400">
-                Karcha kaise hua · day by day
+                How the money was spent · day by day
               </p>
 
               <div className="mt-1.5 max-h-[260px] overflow-y-auto pr-1">
                 {preview.dayGroups.length === 0 && (
                   <p className="py-3 text-center text-[11px] font-medium text-slate-400">
-                    Is range mein koi entry nahi hai.
+                    No entries in this range.
                   </p>
                 )}
 
@@ -582,7 +582,7 @@ export const ReportSettingsCard: React.FC<ReportSettingsCardProps> = React.memo(
             <span>
               {config.lastSentDate
                 ? `Last report: ${config.lastSentDate}`
-                : 'Abhi tak koi report generate nahi hui'}
+                : 'No report generated yet'}
             </span>
             <button
               type="button"

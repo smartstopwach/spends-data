@@ -142,7 +142,7 @@ export const EntryPanel: React.FC<EntryPanelProps> = React.memo(
               }`}
             >
               <ArrowDownLeft className="h-3.5 w-3.5" />
-              Ghar se Paisa
+              Money In
             </button>
           </div>
 
@@ -259,7 +259,7 @@ export const EntryPanel: React.FC<EntryPanelProps> = React.memo(
                 type="text"
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                placeholder={isIncome ? 'Papa ne bheja' : 'Auto + Chai'}
+                placeholder={isIncome ? 'e.g. Monthly allowance' : 'e.g. Auto + tea'}
                 className="field"
               />
             </div>

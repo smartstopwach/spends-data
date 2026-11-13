@@ -65,7 +65,7 @@ describe('formatINR & Date Helpers', () => {
   });
 });
 
-describe('Sample Demo Dataset & Balance Hisaab', () => {
+describe('Sample demo dataset & balance', () => {
   it('creates valid demo entries where balance = total ghar ka paisa - total spends', () => {
     const sample = createSampleTransactions(new Date(2026, 10, 13));
     expect(sample.length).toBeGreaterThan(5);

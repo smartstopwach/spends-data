@@ -29,7 +29,7 @@ interface LedgerTabsCardProps {
 const TABS: Array<{ id: LedgerTab; label: string }> = [
   { id: 'all', label: 'All Activity' },
   { id: 'spend', label: 'Spends' },
-  { id: 'income', label: 'Ghar Se' },
+  { id: 'income', label: 'Money in' },
 ];
 
 const MODE_LABEL: Record<string, string> = { upi: 'UPI', cash: 'Cash', bank: 'Bank' };
@@ -201,7 +201,7 @@ export const LedgerTabsCard: React.FC<LedgerTabsCardProps> = React.memo(
         {/* Header */}
         <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200/80 px-5 py-4">
           <div>
-            <h2 className="text-sm font-semibold text-slate-900">Recent Hisaab</h2>
+            <h2 className="text-sm font-semibold text-slate-900">Recent entries</h2>
             <p className="mt-0.5 text-xs font-medium text-slate-500">
               {monthLabel} · {rows.length} {rows.length === 1 ? 'record' : 'records'}
               {grouped && dayGroups.length > 0 ? ` · ${dayGroups.length} days` : ''}

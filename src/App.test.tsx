@@ -8,16 +8,16 @@ import { createSampleTransactions } from './constants';
 describe('Full App Render Smoke Test', () => {
   it('renders the home overview without crashing', () => {
     const html = renderToString(React.createElement(App));
-    expect(html).toContain('GharKaHisaab');
+    expect(html).toContain('Spends Data');
     expect(html).toContain('Overview');
     expect(html).toContain('Available Balance');
-    expect(html).toContain('Ghar Se Aaya');
+    expect(html).toContain('Money In');
     expect(html).toContain('Total Spends');
     expect(html).toContain('Latest Activity');
     expect(html).toContain('₹5,692');
   });
 
-  it('renders the standalone Recent Hisaab ledger with tabs', () => {
+  it('renders the standalone ledger section with tabs', () => {
     const html = renderToString(
       React.createElement(LedgerTabsCard, {
         transactions: createSampleTransactions(new Date()),
@@ -29,9 +29,9 @@ describe('Full App Render Smoke Test', () => {
         monthLabel: 'November 2026',
       })
     );
-    expect(html).toContain('Recent Hisaab');
+    expect(html).toContain('Recent entries');
     expect(html).toContain('All Activity');
     expect(html).toContain('Spends');
-    expect(html).toContain('Ghar Se');
+    expect(html).toContain('Money in');
   });
 });

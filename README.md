@@ -1,32 +1,27 @@
-# GharKaHisaab — Ghar ka Paisa & Spends Tracker
+# Spends Data — Personal Expense Tracker
 
-Ek clean, fast aur easy-to-use web app jisme aap **Ghar se aaya paisa (+)** add kar sakte hain aur apne **daily spends / kharche (-)** calculate aur track kar sakte hain.
+A clean, fast, easy-to-use web app to record **money coming in (+)** and **daily spends (−)**, keep a running balance and email yourself a weekly or custom-range spend report.
 
-## Key Features
+## Features
 
-- **Live Wallet Balance**: `Total Ghar se Aaya - Total Spends` ka automatic hisaab, saath mein **UPI/Bank** aur **Cash** balance split.
-- **Ghar Se Paisa Add Karein (+)**: Home allowance (Papa/Mummy), Relatives/Gift, Stipend, ya Refund turant wallet mein add karein.
-- **Smart Spend Calculator (-)**:
-  - **Inline Math**: Amount box mein seedha `40 + 25 + 60` likhein aur live `= ₹125` calculate karein.
-  - **Multi-Item Calculator (Hisaab Jodein)**: Kai chhote kharche (Auto, Chai, Notes, Groceries) ek saath list karke total calculate karein aur 1 combined spend ya alag-alag spends ke roop mein save karein.
-- **Monthly Analytics & Budget**:
-  - Mahine ka hisaab (`< Month >` filter + `All Time` view)
-  - Monthly Budget limit progress bar + bache hue dino ke liye **Safe Daily Spend (`/day`)**
-  - Interactive **Category Donut Chart** (Food & Chai, Travel & Auto, Rent & Mess, Study, Recharge, Groceries, etc.)
-  - **Roz ka Kharcha** day-by-day bar chart with daily average line
-- **100% Browser LocalStorage + Backup**:
-  - Koi login ya server setup zaroori nahi — sara data aapke browser mein safe rehta hai.
-  - **Excel / CSV Export** aur **JSON Backup / Restore** built-in hai.
+- **Money In (+)**: home allowance, gift, stipend or refund added straight to the wallet.
+- **Spends (−) with inline math**: type `40 + 25 + 60` in the amount box and it calculates `= ₹125` live.
+- **Recent entries ledger**: day-wise grouping with per-day totals, tabs (All activity / Spends / Money in), search, newest↔oldest sort and one-click delete.
+- **Monthly trend chart**: smooth gradient area chart with hover tooltips, budget pace line and a Money-in toggle.
+- **Weekly email report**: pick your Gmail, choose the day/time, and get an itemised report (summary, category split, day-by-day entries). One click opens Gmail compose, or configure EmailJS for fully automatic sending.
+- **Custom date ranges**: last 7 days, last 14 days, this month or any from → to dates.
+- **Data ownership**: everything stays in your browser's localStorage — no login, no server. Export CSV or a JSON backup any time.
+- **Static and fast**: pure frontend, hashed assets, works on GitHub Pages.
 
-## Local Setup
+## Local development
 
 ```bash
 npm install
-npm run dev
+npm run dev      # http://localhost:5173
+npm test         # vitest suite
+npm run build    # builds dist/ and syncs index.html + hashed assets to the repo root
 ```
 
-Production static build banane ke liye (Vercel / Netlify / GitHub Pages ke liye ready):
+## Deploy
 
-```bash
-npm run build
-```
+Pushing to the deployed branch rebuilds the site automatically. The build writes a prebuilt `index.html` plus content-hashed `assets/` at the repo root so it runs on legacy GitHub Pages without any server.
