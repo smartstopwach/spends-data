@@ -56,6 +56,21 @@ describe('Active state & dummy data hygiene', () => {
 });
 
 describe('Download tab', () => {
+  it('links the Android APK from the latest GitHub release', () => {
+    const html = renderToString(
+      React.createElement(DownloadPage, {
+        pwa: {
+          install: async () => 'manual' as const,
+          installed: false,
+          canNativePrompt: false,
+          platform: 'desktop' as const,
+        },
+      })
+    );
+    expect(html).toContain('Download APK');
+    expect(html).toContain('releases/latest/download/spends-data-android.apk');
+  });
+
   it('offers the one-tap app download', () => {
     const html = renderToString(
       React.createElement(DownloadPage, {

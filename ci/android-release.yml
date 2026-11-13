@@ -92,6 +92,8 @@ jobs:
           mkdir -p artifacts
           cp android/app/build/outputs/apk/debug/app-debug.apk \
              "artifacts/spends-data-${{ steps.version.outputs.version }}-debug.apk"
+          # Stable name: the website's Download page links to this file via releases/latest.
+          cp android/app/build/outputs/apk/debug/app-debug.apk artifacts/spends-data-android.apk
           AAB=android/app/build/outputs/bundle/release/app-release.aab
           if [ -f "$AAB" ]; then
             cp "$AAB" "artifacts/spends-data-${{ steps.version.outputs.version }}-release.aab"
@@ -121,3 +123,4 @@ jobs:
           files: artifacts/*
           draft: false
           prerelease: false
+          make_latest: true

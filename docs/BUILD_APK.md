@@ -20,8 +20,13 @@ why this one step is manual. Then:
 
 **What you get:**
 
-- Artifacts: `spends-data-<version>-debug.apk` and `spends-data-<version>-release.aab`
-- A GitHub **Release** tagged `android-v<version>` with both files attached.
+- Artifacts: `spends-data-<version>-debug.apk`, `spends-data-android.apk` and `spends-data-<version>-release.aab`
+- A GitHub **Release** tagged `android-v<version>` with the files attached. It is marked *latest*.
+- `spends-data-android.apk` has a fixed name, so the website's **Download APK** button
+  (`src/utils/appDownload.ts`) always points to the newest build:
+  `https://github.com/smartstopwach/spends-data/releases/latest/download/spends-data-android.apk`.
+
+The APK is **not** committed to Git. It lives on the release, which keeps the repo small.
 
 **Install on your phone:** open the release on the phone, download the `.apk`, tap it and
 allow *install from unknown sources*. That's the real app — home-screen icon, splash screen,

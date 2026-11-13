@@ -17,6 +17,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       'Turn it on in Settings → Notifications; it uses the worker from Reports → Background delivery.',
       'Android app: reminders are scheduled by the phone itself, so they arrive with the app closed.',
       'Daily, money-left and weekly report reminders share one schedule on every platform.',
+      'Download tab: Android APK button (latest GitHub release).',
     ],
   },
   {
