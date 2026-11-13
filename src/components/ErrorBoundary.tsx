@@ -24,6 +24,7 @@ export class ErrorBoundary extends React.Component<
   handleReset = () => {
     try {
       window.localStorage.removeItem('ghar_ka_hisaab_tx_v1');
+      // Budget was removed from the app — clear any value left by older builds.
       window.localStorage.removeItem('ghar_ka_hisaab_budgets_v1');
     } catch {
       // ignore

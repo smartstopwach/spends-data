@@ -1,5 +1,5 @@
 import { ALL_CATEGORY_MAP } from '../constants';
-import { MonthlyBudgets, Transaction } from '../types';
+import { Transaction } from '../types';
 
 const inrFormatter = new Intl.NumberFormat('en-IN', {
   minimumFractionDigits: 0,
@@ -204,13 +204,12 @@ export function exportTransactionsToCSV(transactions: Transaction[], filename = 
   triggerDownload(blob, filename);
 }
 
-export function exportBackupJSON(transactions: Transaction[], budgets: MonthlyBudgets): void {
+export function exportBackupJSON(transactions: Transaction[]): void {
   const payload = {
     app: 'Spends Data',
-    version: 1,
+    version: 2,
     exportedAt: new Date().toISOString(),
     transactions,
-    budgets,
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   triggerDownload(blob, `spends-data-backup-${getTodayISO()}.json`);

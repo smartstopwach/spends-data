@@ -41,7 +41,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     items: [
       'Track money in and daily spends with inline math.',
       'Day-wise transaction history with search and filters.',
-      'Category breakdown, budget pace and running balance.',
+      'Category breakdown, money left and running balance.',
       'CSV export and JSON backup stored safely in your browser.',
     ],
   },

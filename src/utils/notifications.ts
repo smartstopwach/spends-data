@@ -4,28 +4,28 @@ export interface NotificationSettings {
   enabled: boolean;
   dailyReminder: boolean;
   reminderHour: number;
-  budgetAlerts: boolean;
+  walletAlerts: boolean;
   reportReminder: boolean;
   sound: boolean;
   streakCelebration: boolean;
   weeklyInsight: boolean;
   richActions: boolean;
   lastDaily: string | null;
-  lastBudget: string | null;
+  lastWallet: string | null;
 }
 
 export const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
   enabled: false,
   dailyReminder: true,
   reminderHour: 21,
-  budgetAlerts: true,
+  walletAlerts: true,
   reportReminder: true,
   sound: true,
   streakCelebration: true,
   weeklyInsight: true,
   richActions: true,
   lastDaily: null,
-  lastBudget: null,
+  lastWallet: null,
 };
 
 export function loadNotificationSettings(): NotificationSettings {
@@ -60,7 +60,7 @@ export interface RichNotification {
   title: string;
   body: string;
   tag: string;
-  kind?: 'daily' | 'budget' | 'report' | 'streak' | 'test' | 'insight';
+  kind?: 'daily' | 'wallet' | 'report' | 'streak' | 'test' | 'insight';
   actions?: Array<{ action: string; title: string }>;
   url?: string;
 }

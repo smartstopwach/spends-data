@@ -94,11 +94,11 @@ export interface NativeReminderPlan {
   enabled: boolean;
   hour: number;
   daily: boolean;
-  budgetAlert: boolean;
+  walletAlert: boolean;
   reportReminder: boolean;
 }
 
-const NOTIFICATION_IDS = { daily: 1001, budget: 1002, report: 1003 };
+const NOTIFICATION_IDS = { daily: 1001, wallet: 1002, report: 1003 };
 const CHANNEL_ID = 'spends-data-reminders';
 
 export async function ensureNotificationPermission(): Promise<boolean> {
@@ -128,7 +128,7 @@ export async function scheduleNativeReminders(plan: NativeReminderPlan): Promise
     await LocalNotifications.cancel({
       notifications: [
         { id: NOTIFICATION_IDS.daily },
-        { id: NOTIFICATION_IDS.budget },
+        { id: NOTIFICATION_IDS.wallet },
         { id: NOTIFICATION_IDS.report },
       ],
     });
@@ -139,7 +139,7 @@ export async function scheduleNativeReminders(plan: NativeReminderPlan): Promise
       await LocalNotifications.createChannel({
         id: CHANNEL_ID,
         name: 'Spends Data reminders',
-        description: 'Daily logging, budget and weekly report reminders',
+        description: 'Daily logging, money-left and weekly report reminders',
         importance: 3,
         visibility: 1,
         vibration: true,
@@ -166,10 +166,10 @@ export async function scheduleNativeReminders(plan: NativeReminderPlan): Promise
       });
     }
 
-    if (plan.budgetAlert) {
+    if (plan.walletAlert) {
       notifications.push({
-        id: NOTIFICATION_IDS.budget,
-        title: 'Check your budget',
+        id: NOTIFICATION_IDS.wallet,
+        title: 'Check your money left',
         body: 'Open Spends Data to see how much is left this month.',
         channelId: CHANNEL_ID,
         schedule: {

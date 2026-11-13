@@ -7,7 +7,7 @@ export interface SwNotificationPayload {
   title: string;
   body: string;
   tag: string;
-  kind: 'daily' | 'budget' | 'report' | 'streak' | 'test' | 'insight';
+  kind: 'daily' | 'wallet' | 'report' | 'streak' | 'test' | 'insight';
   actions?: Array<{ action: string; title: string }>;
   data?: Record<string, unknown>;
 }
@@ -19,7 +19,7 @@ export interface SwSnapshot {
   weekSpend: number;
   weekIncome: number;
   monthSpend: number;
-  monthBudget: number;
+  moneyLeft: number;
   walletBalance: number;
   topCategory: string | null;
   topCategoryAmount: number;
@@ -84,24 +84,23 @@ export function composeNotification(
       };
     }
 
-    case 'budget': {
-      const used =
-        snapshot.monthBudget > 0
-          ? Math.round((snapshot.monthSpend / snapshot.monthBudget) * 100)
-          : 0;
-      const left = Math.max(0, snapshot.monthBudget - snapshot.monthSpend);
+    case 'wallet': {
+      const left = Math.round(snapshot.moneyLeft);
+      const short = left <= 0;
+      const daysLeft = Math.max(1, 30 - new Date().getDate() + 1);
       return {
         kind,
-        tag: 'spends-budget',
-        title: used >= 100 ? 'Budget crossed 🚨' : `Budget ${used}% used`,
-        body:
-          used >= 100
-            ? `${fmt(snapshot.monthSpend)} of ${fmt(
-                snapshot.monthBudget
-              )} spent. Consider slowing down for the rest of the month.`
-            : `${fmt(left)} left this month. Keep daily spends under ${fmt(
-                Math.round(left / Math.max(1, 30 - new Date().getDate() + 1))
-              )}.`,
+        tag: 'spends-wallet',
+        title: short
+          ? 'Spent more than came in 💸'
+          : left < 500
+          ? 'Running low'
+          : pick([`${fmt(left)} left`, 'Money check', 'What is left'], 1),
+        body: short
+          ? `You are ${fmt(Math.abs(left))} over the money received this month. Add the next credit or ease off for a bit.`
+          : `${fmt(left)} of this month's money is still unspent — about ${fmt(
+              Math.round(left / daysLeft)
+            )} a day for the rest of the month.`,
         actions: [
           { action: 'open', title: 'See breakdown' },
           { action: 'dismiss', title: 'Later' },

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   AlertTriangle,
   Bell,
@@ -16,7 +16,6 @@ import {
 } from 'lucide-react';
 import { NotificationSettings, vibrate } from '../utils/notifications';
 import { formatBytes, StorageUsage } from '../hooks/useStorageUsage';
-import { formatINR } from '../utils/mathAndFormat';
 
 interface SettingsCardProps {
   storage: StorageUsage;
@@ -37,9 +36,6 @@ interface SettingsCardProps {
   transactionCount: number;
   installed: boolean;
   onOpenDownload: () => void;
-  /** Inline monthly budget editor (no hard-coded default anywhere). */
-  monthlyBudget: number;
-  onSaveBudget: (amount: number) => void;
   onExportCsv: () => void;
   onExportBackup: () => void;
   onImportBackup: (raw: string) => { ok: boolean; message: string };
@@ -96,8 +92,6 @@ export const SettingsCard: React.FC<SettingsCardProps> = ({
   transactionCount,
   installed,
   onOpenDownload,
-  monthlyBudget,
-  onSaveBudget,
   onExportCsv,
   onExportBackup,
   onImportBackup,
@@ -111,23 +105,6 @@ export const SettingsCard: React.FC<SettingsCardProps> = ({
   const [importMessage, setImportMessage] = useState<string | null>(null);
   const [persistMessage, setPersistMessage] = useState<string | null>(null);
   const [confirmReset, setConfirmReset] = useState(false);
-  const [budgetDraft, setBudgetDraft] = useState<string>(
-    monthlyBudget > 0 ? String(monthlyBudget) : ''
-  );
-  const [budgetSaved, setBudgetSaved] = useState(false);
-
-  useEffect(() => {
-    setBudgetDraft(monthlyBudget > 0 ? String(monthlyBudget) : '');
-  }, [monthlyBudget]);
-
-  const saveBudget = () => {
-    const amount = Math.max(0, Math.round(Number(budgetDraft) || 0));
-    onSaveBudget(amount);
-    setBudgetDraft(amount > 0 ? String(amount) : '');
-    setBudgetSaved(true);
-    window.setTimeout(() => setBudgetSaved(false), 1800);
-  };
-
   const { settings, permission, supported, onChange, onRequestPermission, onTest } = notifications;
 
   const handleEnableNotifications = async () => {
@@ -164,7 +141,7 @@ export const SettingsCard: React.FC<SettingsCardProps> = ({
                 ? 'This browser does not support notifications.'
                 : permission === 'denied'
                 ? 'Blocked — allow notifications for this site in your browser settings.'
-                : 'Daily nudge, budget alert and weekly report reminder.'
+                : 'Daily nudge and weekly report reminder.'
             }
           >
             <Toggle
@@ -222,11 +199,16 @@ export const SettingsCard: React.FC<SettingsCardProps> = ({
             </select>
           </Row>
 
-          <Row title="Budget alert" subtitle="Warns when 90% of the monthly budget is used">
+
+
+          <Row
+            title="Money left alert"
+            subtitle="Pings when the month's money is used up before the month ends"
+          >
             <Toggle
-              label="Budget alerts"
-              on={settings.budgetAlerts}
-              onClick={() => onChange({ ...settings, budgetAlerts: !settings.budgetAlerts })}
+              label="Money left alerts"
+              on={settings.walletAlerts}
+              onClick={() => onChange({ ...settings, walletAlerts: !settings.walletAlerts })}
             />
           </Row>
 
@@ -503,38 +485,7 @@ export const SettingsCard: React.FC<SettingsCardProps> = ({
 
 
 
-          <Row
-            title="Monthly budget"
-            subtitle={
-              monthlyBudget > 0
-                ? `Pace line and usage bar use ${formatINR(monthlyBudget)} per month.`
-                : 'Not set — no pace line or usage bar. Add a limit only if you want one.'
-            }
-          >
-            <div className="flex items-center gap-1.5">
-              <input
-                type="number"
-                inputMode="numeric"
-                min={0}
-                step={100}
-                value={budgetDraft}
-                onChange={(e) => setBudgetDraft(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') saveBudget();
-                }}
-                placeholder="0"
-                aria-label="Monthly budget"
-                className="w-20 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-right text-[12px] font-semibold text-slate-900 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
-              />
-              <button
-                type="button"
-                onClick={saveBudget}
-                className="rounded-lg bg-slate-900 px-2.5 py-1.5 text-[11px] font-bold text-white transition hover:bg-slate-800"
-              >
-                {budgetSaved ? 'Saved' : 'Save'}
-              </button>
-            </div>
-          </Row>
+
 
           <Row title="Share summary" subtitle="Send this week's numbers to a friend or family">
             <button

@@ -7,7 +7,7 @@ A clean, fast, easy-to-use web app to record **money coming in (+)** and **daily
 - **Money In (+)**: home allowance, gift, stipend or refund added straight to the wallet.
 - **Spends (−) with inline math**: type `40 + 25 + 60` in the amount box and it calculates `= ₹125` live.
 - **Recent entries ledger**: day-wise grouping with per-day totals, tabs (All activity / Spends / Money in), search, newest↔oldest sort and one-click delete.
-- **Monthly trend chart**: smooth gradient area chart with hover tooltips, budget pace line and a Money-in toggle.
+- **Monthly trend chart**: smooth gradient area chart with hover tooltips plus Spends / Money in / Savings toggles.
 - **Weekly email report**: pick your Gmail, choose the day/time, and get an itemised report (summary, category split, day-by-day entries). One click opens Gmail compose, or configure EmailJS for fully automatic sending.
 - **Custom date ranges**: last 7 days, last 14 days, this month or any from → to dates.
 - **Data ownership**: everything stays in your browser's localStorage — no login, no server. Export CSV or a JSON backup any time.

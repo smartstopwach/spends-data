@@ -97,7 +97,7 @@ properties and apply it to `buildTypes.release`. Build the bundle with
 - [ ] Full description: inline math amounts, day-wise history, category breakdown,
       weekly email reports, offline support, data stays on device
 - [ ] Data safety: **no data collected**, no data shared, no trackers
-- [ ] Notifications declared as *optional* (daily reminder, budget alert, report reminder)
+- [ ] Notifications declared as *optional* (daily reminder, money-left alert, report reminder)
 - [ ] Privacy policy URL
 - [ ] Content rating: Finance / Productivity utility
 - [ ] Upload to **Internal testing** first → Production rollout

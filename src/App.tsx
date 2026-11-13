@@ -58,7 +58,6 @@ export const App: React.FC = () => {
     period,
     periodInfo,
     setPeriod,
-    budgets,
     walletSummary,
     periodAnalytics,
     hasDemoEntries,
@@ -68,7 +67,6 @@ export const App: React.FC = () => {
     loadDemoData,
     clearAllData,
     importBackupData,
-    setBudgetForMonth,
   } = useSpendsStore();
 
   const [view, setView] = useState<View>(readHashView);
@@ -144,7 +142,7 @@ export const App: React.FC = () => {
       weekSpend: week.spend,
       weekIncome: week.income,
       monthSpend: periodAnalytics.spend,
-      monthBudget: periodAnalytics.effectiveLimit,
+      moneyLeft: periodAnalytics.moneyLeft,
       walletBalance: walletSummary.balance,
       topCategory: week.topCategory,
       topCategoryAmount: week.topCategoryAmount,
@@ -162,19 +160,19 @@ export const App: React.FC = () => {
     return transactions.filter((tx) => tx.date === iso).length;
   }, [transactions]);
 
-  // Evaluate device reminders (daily nudge / budget alert / report reminder).
+  // Evaluate device reminders (daily nudge / money-left nudge / report reminder).
   useEffect(() => {
     const id = window.setTimeout(() => {
       notifications.evaluate({
         spendCountToday: transactionsToday,
-        budgetUsedPercent: periodAnalytics.budgetUsedPercent,
+        moneyLeft: periodAnalytics.moneyLeft,
         reportDue: due,
         snapshot: notificationSnapshot,
       });
     }, 4000);
     return () => window.clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [transactionsToday, due, periodAnalytics.budgetUsedPercent, notifications.settings.enabled]);
+  }, [transactionsToday, due, periodAnalytics.moneyLeft, notifications.settings.enabled]);
 
   const handleAdd = useCallback(
     (tx: Parameters<typeof addTransaction>[0]) => {
@@ -285,7 +283,7 @@ export const App: React.FC = () => {
                       role="menuitem"
                       type="button"
                       onClick={() => {
-                        exportBackupJSON(transactions, budgets);
+                        exportBackupJSON(transactions);
                         setMenuOpen(false);
                       }}
                       className="flex w-full items-center gap-2 px-3 py-2 text-left text-[12px] font-medium text-slate-700 transition hover:bg-slate-50"
@@ -431,8 +429,7 @@ export const App: React.FC = () => {
               incomeCount={periodAnalytics.incomeCount}
               spendCount={periodAnalytics.spendCount}
               dailyAvgSpend={periodAnalytics.dailyAvgSpend}
-              safeDailyAllowance={periodAnalytics.safeDailyAllowance}
-              budgetIsSet={periodAnalytics.budgetIsSet}
+              moneyLeft={periodAnalytics.moneyLeft}
               onQuickAdd={handleQuickAdd}
             />
 
@@ -453,12 +450,9 @@ export const App: React.FC = () => {
                 <TrendCard
                   dailySeries={periodAnalytics.dailySeries}
                   savingsMoved={periodAnalytics.savingsMoved}
-                  spend={periodAnalytics.spend}
-                  budget={periodAnalytics.effectiveLimit}
-                  budgetUsedPercent={periodAnalytics.budgetUsedPercent}
-                  budgetRemaining={periodAnalytics.budgetRemaining}
+                  moneyLeft={periodAnalytics.moneyLeft}
                   monthLabel={monthLabel}
-                  safeDailyAllowance={periodAnalytics.safeDailyAllowance}
+                  daysLeft={periodAnalytics.daysLeft}
                 />
 
                 <div className="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2">
@@ -718,8 +712,6 @@ export const App: React.FC = () => {
               transactionCount={transactions.length}
               installed={pwa.installed}
               onOpenDownload={() => setDownloadOpen(true)}
-              monthlyBudget={periodAnalytics.effectiveBudget}
-              onSaveBudget={(amount) => setBudgetForMonth(period.anchor, amount)}
               notifications={{
                 settings: notifications.settings,
                 permission: notifications.permission,
@@ -739,12 +731,13 @@ export const App: React.FC = () => {
                   enabled,
                   hour: notifications.settings.reminderHour,
                   daily: notifications.settings.dailyReminder,
-                  budgetAlert: notifications.settings.budgetAlerts,
+
+                  walletAlert: notifications.settings.walletAlerts,
                   reportReminder: notifications.settings.reportReminder,
                 });
               }}
               onExportCsv={() => exportTransactionsToCSV(transactions)}
-              onExportBackup={() => exportBackupJSON(transactions, budgets)}
+              onExportBackup={() => exportBackupJSON(transactions)}
               onImportBackup={(raw) => importBackupData(raw)}
               onPersistStorage={async () => {
                 try {

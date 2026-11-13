@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ALL_CATEGORY_MAP, createSampleTransactions, SPEND_CATEGORIES } from '../constants';
-import { IncomeSource, MonthlyBudgets, PaymentMode, SpendCategory, Transaction, TransactionType } from '../types';
+import { IncomeSource, PaymentMode, SpendCategory, Transaction, TransactionType } from '../types';
 import { getCurrentMonthKey, getDaysInMonth, getTodayISO, shiftISODate } from '../utils/mathAndFormat';
 import { PeriodMode, PeriodState, currentPeriod, resolvePeriod } from '../utils/period';
 
 const TX_STORAGE_KEY = 'ghar_ka_hisaab_tx_v1';
-const BUDGET_STORAGE_KEY = 'ghar_ka_hisaab_budgets_v1';
 const INIT_STORAGE_KEY = 'ghar_ka_hisaab_init_v1';
 
 export interface NewTransactionInput {
@@ -58,6 +57,13 @@ const sanitize = (list: unknown): Transaction[] => {
 };
 
 export function useSpendsStore() {
+  // Budgets were removed from the app; drop any value older builds persisted.
+  try {
+    window.localStorage.removeItem('ghar_ka_hisaab_budgets_v1');
+  } catch {
+    // ignore
+  }
+
   /**
    * Real entries only. Sample data is never seeded into the store automatically —
    * it lives behind an explicit "Load sample data" action and is wiped on the next
@@ -77,39 +83,6 @@ export function useSpendsStore() {
     } catch {
       return [];
     }
-  });
-
-  const [budgets, setBudgets] = useState<MonthlyBudgets>(() => {
-    try {
-      const saved = localStorage.getItem(BUDGET_STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved) as Record<string, unknown>;
-        if (parsed && typeof parsed === 'object') {
-          // Old builds shipped a hard-coded 8500 default that leaked into every
-          // browser. Drop it once, keep only budgets the user actually chose.
-          const staleDefault = Number(parsed.default);
-          if (staleDefault === 8500) {
-            const months = Object.fromEntries(
-              Object.entries(parsed).filter(
-                ([key, value]) => key !== 'default' && Number(value) !== 8500
-              )
-            ) as MonthlyBudgets;
-            const hasMonth = Object.keys(months).length > 0;
-            localStorage.setItem(
-              BUDGET_STORAGE_KEY,
-              JSON.stringify(hasMonth ? { ...months, default: 0 } : {})
-            );
-            return hasMonth ? { ...months, default: 0 } : {};
-          }
-          return parsed as MonthlyBudgets;
-        }
-      }
-    } catch {
-      // ignore
-    }
-    // No default budget: the pace line and usage bar only appear once the user
-    // sets their own limit (Settings → Monthly budget).
-    return {};
   });
 
   const [period, setPeriodState] = useState<PeriodState>(() => currentPeriod('month'));
@@ -136,14 +109,6 @@ export function useSpendsStore() {
       // ignore quota errors
     }
   }, [transactions]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(BUDGET_STORAGE_KEY, JSON.stringify(budgets));
-    } catch {
-      // ignore
-    }
-  }, [budgets]);
 
   const addTransaction = useCallback((input: NewTransactionInput) => {
     const tx: Transaction = {
@@ -211,16 +176,6 @@ export function useSpendsStore() {
     setTransactions([]);
   }, []);
 
-  const setBudgetForMonth = useCallback((monthKey: string, amount: number) => {
-    const clean = Math.max(0, Math.round(amount));
-    setBudgets((prev) => {
-      const next = { ...prev, [monthKey]: clean };
-      // Keep `default` in sync so a cleared budget stays cleared.
-      next.default = clean;
-      return next;
-    });
-  }, []);
-
   const importBackupData = useCallback((rawJson: string): { ok: boolean; message: string } => {
     try {
       const parsed = JSON.parse(rawJson);
@@ -249,9 +204,6 @@ export function useSpendsStore() {
         }));
 
       setTransactions(validTx);
-      if (parsed?.budgets && typeof parsed.budgets === 'object') {
-        setBudgets(parsed.budgets);
-      }
       return { ok: true, message: `${validTx.length} entries restored successfully!` };
     } catch {
       return { ok: false, message: 'Could not read that JSON file. Choose a valid backup.' };
@@ -393,24 +345,9 @@ export function useSpendsStore() {
 
     const dailyAvgSpend = spend > 0 ? Math.round(spend / elapsedDays) : 0;
 
-    const configuredBudget =
-      periodInfo.mode === 'month'
-        ? budgets[period.anchor] ?? budgets.default ?? 0
-        : budgets[activeMonthKey] ?? budgets.default ?? 0;
-
-    // Only a budget the user typed counts. No fallback to income, no default —
-    // with nothing set the pace line, usage bar and "over budget" copy stay hidden.
-    const effectiveLimit = configuredBudget;
-    const effectiveBudget = configuredBudget;
-    const budgetIsSet = configuredBudget > 0 && periodInfo.mode !== 'all';
-    const budgetRemaining = budgetIsSet ? Math.round((effectiveLimit - spend) * 100) / 100 : 0;
-    const safeDailyAllowance =
-      budgetIsSet && remainingDays > 0 && budgetRemaining > 0
-        ? Math.round(budgetRemaining / remainingDays)
-        : 0;
-    const budgetUsedPercent = budgetIsSet
-      ? Math.min(999, Math.round((spend / effectiveLimit) * 100))
-      : 0;
+    const moneyLeft = Math.round((income - spend) * 100) / 100;
+    const daysLeft =
+      remainingDays > 0 && moneyLeft > 0 ? Math.round(moneyLeft / remainingDays) : 0;
 
     // Daily series for the active period (week → 7 days, month → days of month)
     const dailyMap: Record<number, { spend: number; income: number; savings: number }> = {};
@@ -483,19 +420,14 @@ export function useSpendsStore() {
       spendCount,
       categoryBreakdown,
       dailyAvgSpend,
-      configuredBudget,
-      effectiveBudget,
-      effectiveLimit,
-      budgetIsSet,
-      budgetRemaining,
-      safeDailyAllowance,
-      budgetUsedPercent,
+      moneyLeft,
+      daysLeft,
       remainingDays,
       elapsedDays,
       dailySeries,
       activeMonthKey,
     };
-  }, [periodTransactions, period, periodInfo, budgets, transactions]);
+  }, [periodTransactions, periodInfo, transactions]);
 
   return {
     transactions,
@@ -504,8 +436,6 @@ export function useSpendsStore() {
     periodInfo,
     setPeriod,
     setPeriodMode,
-    budgets,
-    setBudgetForMonth,
     walletSummary,
     periodAnalytics,
     hasDemoEntries,

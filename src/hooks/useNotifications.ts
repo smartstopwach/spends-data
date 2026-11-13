@@ -17,7 +17,7 @@ import { isNative, scheduleNativeReminders } from '../utils/native';
 
 interface ReminderContext {
   spendCountToday: number;
-  budgetUsedPercent: number;
+  moneyLeft: number;
   reportDue: boolean;
   snapshot: SwSnapshot;
 }
@@ -42,7 +42,7 @@ export function useNotifications() {
         enabled: next.enabled,
         hour: next.reminderHour,
         daily: next.dailyReminder,
-        budgetAlert: next.budgetAlerts,
+        walletAlert: next.walletAlerts,
         reportReminder: next.reportReminder,
       });
     }
@@ -63,7 +63,7 @@ export function useNotifications() {
       title: string;
       body: string;
       tag: string;
-      kind?: 'daily' | 'budget' | 'report' | 'streak' | 'test' | 'insight';
+      kind?: 'daily' | 'wallet' | 'report' | 'streak' | 'test' | 'insight';
       actions?: Array<{ action: string; title: string }>;
       url?: string;
     }) => {
@@ -74,7 +74,7 @@ export function useNotifications() {
 
   /** Composes a context-aware notification from live numbers. */
   const notifyFromSnapshot = useCallback(
-    async (kind: 'daily' | 'budget' | 'report' | 'streak' | 'insight' | 'test', snapshot: SwSnapshot) => {
+    async (kind: 'daily' | 'wallet' | 'report' | 'streak' | 'insight' | 'test', snapshot: SwSnapshot) => {
       const payload = composeNotification(kind, snapshot);
       await showAppNotification({
         title: payload.title,
@@ -90,7 +90,7 @@ export function useNotifications() {
 
   /**
    * Evaluates reminder rules once an environment provides fresh context:
-   * daily logging nudge, budget alert at 90% and the weekly report reminder.
+   * daily logging nudge, money-left nudge and the weekly report reminder.
    */
   const evaluate = useCallback(
     (context: ReminderContext) => {
@@ -111,12 +111,12 @@ export function useNotifications() {
 
       const monthKey = today.slice(0, 7);
       if (
-        settings.budgetAlerts &&
-        settings.lastBudget !== monthKey &&
-        context.budgetUsedPercent >= 90
+        settings.walletAlerts &&
+        settings.lastWallet !== monthKey &&
+        context.moneyLeft <= 0
       ) {
-        void notifyFromSnapshot('budget', context.snapshot);
-        patches.lastBudget = monthKey;
+        void notifyFromSnapshot('wallet', context.snapshot);
+        patches.lastWallet = monthKey;
       }
 
       if (settings.reportReminder && context.reportDue) {
@@ -136,7 +136,7 @@ export function useNotifications() {
     if (!settings.enabled) return 0;
     let count = 0;
     if (settings.dailyReminder) count += 1;
-    if (settings.budgetAlerts) count += 1;
+    if (settings.walletAlerts) count += 1;
     if (settings.reportReminder) count += 1;
     return Math.min(count, 9);
   }, [settings]);

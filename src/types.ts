@@ -31,7 +31,6 @@ export interface Transaction {
   createdAt: number;
 }
 
-export type MonthlyBudgets = Record<string, number>;
 
 export interface CategoryMeta {
   id: SpendCategory | IncomeSource;

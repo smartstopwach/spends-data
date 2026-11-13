@@ -8,12 +8,10 @@ type SeriesKey = 'spend' | 'income' | 'savings';
 interface TrendCardProps {
   dailySeries: DailySpendPoint[];
   savingsMoved?: number;
-  spend: number;
-  budget: number;
-  budgetUsedPercent: number;
-  budgetRemaining: number;
+  /** Money in minus spends for the period — the honest "what's left" figure. */
+  moneyLeft: number;
   monthLabel: string;
-  safeDailyAllowance: number;
+  daysLeft: number;
 }
 
 const VIEW_W = 640;
@@ -63,12 +61,9 @@ export const TrendCard: React.FC<TrendCardProps> = React.memo(
   ({
     dailySeries,
     savingsMoved = 0,
-    spend,
-    budget,
-    budgetUsedPercent,
-    budgetRemaining,
+    moneyLeft,
     monthLabel,
-    safeDailyAllowance,
+    daysLeft,
   }) => {
     const [series, setSeries] = useState<SeriesKey>('spend');
     const [hover, setHover] = useState<number | null>(null);
@@ -137,13 +132,6 @@ export const TrendCard: React.FC<TrendCardProps> = React.memo(
       return `${linePath} L ${points[points.length - 1][0]},${baseY} L ${points[0][0]},${baseY} Z`;
     }, [linePath, points]);
 
-    const budgetY = useMemo(() => {
-      if (!budget || budget <= 0) return null;
-      const dailyLine = budget / Math.max(1, dailySeries.length);
-      if (dailyLine > maxValue) return null;
-      return PAD.top + PLOT_H - (dailyLine / maxValue) * PLOT_H;
-    }, [budget, dailySeries.length, maxValue]);
-
     const hovered = hover !== null ? dailySeries[hover] ?? null : null;
     const valueOfPoint = (point: DailySpendPoint | null): number => {
       if (!point) return 0;
@@ -177,11 +165,9 @@ export const TrendCard: React.FC<TrendCardProps> = React.memo(
         ? 'bg-white text-emerald-600 shadow-sm ring-1 ring-slate-200'
         : 'bg-white text-teal-600 shadow-sm ring-1 ring-slate-200';
 
-    const clampedPct = Math.min(100, Math.max(0, budgetUsedPercent));
-    const overBudget = budget > 0 && spend > budget;
 
     return (
-      <section aria-label="Spend trend and budget" className="panel flex flex-col p-4 sm:p-5">
+      <section aria-label="Spend trend" className="panel flex flex-col p-4 sm:p-5">
         <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between sm:gap-3">
           <div className="min-w-0">
             <h2 className="text-sm font-semibold text-slate-900">Monthly Trend</h2>
@@ -333,20 +319,6 @@ export const TrendCard: React.FC<TrendCardProps> = React.memo(
               );
             })}
 
-            {/* monthly budget pace line */}
-            {budgetY !== null && (
-              <line
-                x1={PAD.left}
-                x2={PAD.left + PLOT_W}
-                y1={budgetY}
-                y2={budgetY}
-                stroke="#f59e0b"
-                strokeWidth={1}
-                strokeDasharray="5 4"
-                opacity={0.7}
-              />
-            )}
-
             {hasData ? (
               <g clipPath={`url(#clip-${uid})`}>
                 <path d={areaPath} fill={`url(#fill-${uid})`} />
@@ -440,54 +412,24 @@ export const TrendCard: React.FC<TrendCardProps> = React.memo(
           </svg>
         </div>
 
-        {/* Budget strip — only when the user set a limit themselves (no default). */}
-        {budget > 0 && (
-        <div className="mt-4 rounded-xl border border-slate-200/80 bg-slate-50/70 p-3.5">
-          <div className="flex items-center justify-between text-[11px] font-semibold text-slate-600">
-            <span>
-              Budget usage{' '}
-              <span className={`num ${overBudget ? 'text-rose-600' : 'text-slate-900'}`}>
-                {clampedPct}%
-              </span>
+        {/* What's left of the money that came in this period */}
+        <div className="mt-3.5 flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5 rounded-xl border border-slate-200/80 bg-slate-50/70 px-3.5 py-2.5 sm:mt-4">
+          <span className="text-[11px] font-semibold text-slate-600">
+            {moneyLeft >= 0 ? 'Money left this period' : 'Spent more than came in'}
+          </span>
+          <span
+            className={`num text-[13px] font-bold ${
+              moneyLeft >= 0 ? 'text-slate-900' : 'text-rose-600'
+            }`}
+          >
+            {formatINR(Math.abs(moneyLeft))}
+          </span>
+          {daysLeft > 0 && moneyLeft > 0 && (
+            <span className="num w-full text-[10.5px] font-medium text-slate-400">
+              about {formatINR(daysLeft)} a day for the remaining days
             </span>
-            <span className="num">
-              {formatINR(spend)} / {formatINR(budget)}
-            </span>
-          </div>
-          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-200/80">
-            <div
-              className={`h-full rounded-full transition-all duration-500 ${
-                overBudget ? 'bg-rose-500' : clampedPct > 80 ? 'bg-amber-500' : 'bg-indigo-500'
-              }`}
-              style={{ width: `${clampedPct}%` }}
-            />
-          </div>
-          <div className="mt-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[11px] font-medium text-slate-500">
-            {budgetRemaining >= 0 ? (
-              <span>
-                <span className="num font-semibold text-slate-700">
-                  {formatINR(budgetRemaining)}
-                </span>{' '}
-                left · safe{' '}
-                <span className="num font-semibold text-slate-700">
-                  {formatINR(safeDailyAllowance)}
-                </span>
-                /day
-              </span>
-            ) : (
-              <span className="font-semibold text-rose-600">
-                Over budget by {formatINR(Math.abs(budgetRemaining))}
-              </span>
-            )}
-            {budgetY !== null && (
-              <span className="flex items-center gap-1 text-[10px] text-slate-400">
-                <span className="h-0 w-4 border-t border-dashed border-amber-500" />
-                budget pace
-              </span>
-            )}
-          </div>
+          )}
         </div>
-        )}
       </section>
     );
   }
