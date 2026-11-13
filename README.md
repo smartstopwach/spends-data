@@ -25,3 +25,18 @@ npm run build    # builds dist/ and syncs index.html + hashed assets to the repo
 ## Deploy
 
 Pushing to the deployed branch rebuilds the site automatically. The build writes a prebuilt `index.html` plus content-hashed `assets/` at the repo root so it runs on legacy GitHub Pages without any server.
+
+## Android app
+
+Spends Data also ships as a real Android app (Capacitor wrapper in `android/`) with
+home-screen icon, splash screen and OS-level scheduled reminders that fire even when the
+app is closed.
+
+```bash
+npm run build:mobile    # web build + cap sync
+npm run android         # open in Android Studio
+```
+
+To get an installable APK without a local Android SDK, follow
+[`docs/BUILD_APK.md`](docs/BUILD_APK.md) — it builds through GitHub Actions in a couple of
+minutes and publishes the APK to a GitHub Release.

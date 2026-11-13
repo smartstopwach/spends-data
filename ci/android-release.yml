@@ -1,0 +1,99 @@
+name: Build Android app
+
+on:
+  push:
+    branches:
+      - arena/5280413c-spends-data
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'android/**'
+      - 'capacitor.config.ts'
+      - 'index.template.html'
+      - 'package.json'
+      - 'vite.config.ts'
+      - '.github/workflows/android-release.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build APK + AAB
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web bundle
+        run: npm run build
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      - name: Read app version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Build debug APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Build unsigned release AAB
+        working-directory: android
+        run: ./gradlew bundleRelease --no-daemon --stacktrace
+
+      - name: Rename artifacts
+        run: |
+          mkdir -p artifacts
+          cp android/app/build/outputs/apk/debug/app-debug.apk \
+             "artifacts/spends-data-${{ steps.version.outputs.version }}-debug.apk"
+          cp android/app/build/outputs/bundle/release/app-release.aab \
+             "artifacts/spends-data-${{ steps.version.outputs.version }}-release.aab"
+          ls -lh artifacts
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: spends-data-android
+          path: artifacts/*
+          retention-days: 30
+
+      - name: Publish to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: android-v${{ steps.version.outputs.version }}
+          name: Spends Data Android v${{ steps.version.outputs.version }}
+          body: |
+            Installable Android build of Spends Data.
+
+            **Install on your phone:** download `spends-data-${{ steps.version.outputs.version }}-debug.apk`, tap it and allow "install from unknown sources".
+
+            `-release.aab` is the unsigned bundle to upload to the Play Store (sign it with your upload keystore first).
+          files: artifacts/*
+          draft: false
+          prerelease: false

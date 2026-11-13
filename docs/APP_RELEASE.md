@@ -32,6 +32,16 @@ VIBRATE
 INTERNET
 ```
 
+## How the APK gets built
+
+The compiler cannot run inside this workspace (no JDK/Android SDK, downloads blocked), so
+use either:
+
+- **GitHub Actions** — copy `ci/android-release.yml` to `.github/workflows/` once from the
+  GitHub UI, then every push builds a debug APK + release AAB and attaches them to a
+  GitHub Release. See `docs/BUILD_APK.md`.
+- **Android Studio locally** — `npm run android`.
+
 ## Everyday workflow
 
 ```bash
