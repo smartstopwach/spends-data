@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Bell,
   ChevronDown,
@@ -22,6 +22,7 @@ import { TrendCard } from './components/TrendCard';
 import { useEmailReport } from './hooks/useEmailReport';
 import { useSpendsStore } from './hooks/useSpendsStore';
 import { SpendCategory, TransactionType } from './types';
+import { buildReport, resolveReportRange } from './utils/weeklyReport';
 import {
   exportBackupJSON,
   exportTransactionsToCSV,
@@ -64,6 +65,11 @@ export const App: React.FC = () => {
 
   const currentMonthKey = getCurrentMonthKey();
   const monthLabel = formatMonthLabel(selectedMonth);
+  const reportRange = resolveReportRange(reportConfig);
+  const reportPreview = useMemo(
+    () => buildReport(transactions, { fromISO: reportRange.fromISO, toISO: reportRange.toISO }),
+    [transactions, reportRange.fromISO, reportRange.toISO]
+  );
 
   useEffect(() => {
     const onHash = () => setView(readHashView());
@@ -587,16 +593,26 @@ export const App: React.FC = () => {
                 </section>
 
                 <section className="panel p-5">
-                  <h2 className="text-sm font-semibold text-slate-900">Last 7 days</h2>
-                  <p className="mt-0.5 text-xs font-medium text-slate-500">
-                    Yehi data aapke weekly mail mein jayega.
+                  <h2 className="text-sm font-semibold text-slate-900">Selected period</h2>
+                  <p className="num mt-0.5 text-xs font-medium text-slate-500">
+                    {reportRange.label} · {reportRange.days}{' '}
+                    {reportRange.days === 1 ? 'day' : 'days'}
                   </p>
                   <dl className="mt-3 grid grid-cols-2 gap-2">
                     {[
-                      { label: 'Entries', value: String(periodAnalytics.spendCount + periodAnalytics.incomeCount) },
-                      { label: 'Spends', value: `₹${periodAnalytics.spend.toLocaleString('en-IN')}` },
-                      { label: 'Money in', value: `₹${periodAnalytics.income.toLocaleString('en-IN')}` },
-                      { label: 'Wallet', value: `₹${walletSummary.balance.toLocaleString('en-IN')}` },
+                      { label: 'Entries', value: String(reportPreview.entryCount) },
+                      {
+                        label: 'Spends',
+                        value: `₹${reportPreview.spend.toLocaleString('en-IN')}`,
+                      },
+                      {
+                        label: 'Money in',
+                        value: `₹${reportPreview.income.toLocaleString('en-IN')}`,
+                      },
+                      {
+                        label: 'Daily avg',
+                        value: `₹${reportPreview.dailyAvg.toLocaleString('en-IN')}`,
+                      },
                     ].map((item) => (
                       <div key={item.label} className="rounded-lg bg-slate-50 px-3 py-2">
                         <dt className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
@@ -608,6 +624,18 @@ export const App: React.FC = () => {
                       </div>
                     ))}
                   </dl>
+
+                  <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50/70 p-3">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-slate-400">
+                      Mail mein kya jayega
+                    </p>
+                    <ul className="mt-1.5 space-y-1 text-[11px] font-medium text-slate-600">
+                      <li>• Summary: money in, spends, net, balance</li>
+                      <li>• Category-wise breakdown with bars</li>
+                      <li>• Day by day karcha — har entry ke saath</li>
+                      <li>• Biggest category &amp; biggest single spend</li>
+                    </ul>
+                  </div>
                 </section>
               </div>
             </div>

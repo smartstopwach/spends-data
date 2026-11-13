@@ -1,3 +1,5 @@
+import { ReportRangeMode } from './weeklyReport';
+
 const CONFIG_KEY = 'ghar_ka_hisaab_report_v1';
 
 export type ReportDelivery = 'gmail' | 'emailjs';
@@ -14,6 +16,12 @@ export interface EmailReportConfig {
   emailjs: { serviceId: string; templateId: string; publicKey: string };
   /** ISO date of the last digest that was generated / sent. */
   lastSentDate: string | null;
+  /** Which period the digest should cover. */
+  rangeMode: ReportRangeMode;
+  customFrom: string;
+  customTo: string;
+  /** Optional note appended to the email. */
+  footerNote: string;
 }
 
 export const DEFAULT_REPORT_CONFIG: EmailReportConfig = {
@@ -24,6 +32,10 @@ export const DEFAULT_REPORT_CONFIG: EmailReportConfig = {
   delivery: 'gmail',
   emailjs: { serviceId: '', templateId: '', publicKey: '' },
   lastSentDate: null,
+  rangeMode: 'last7',
+  customFrom: '',
+  customTo: '',
+  footerNote: '',
 };
 
 export const WEEKDAYS: Array<{ value: number; label: string; short: string }> = [

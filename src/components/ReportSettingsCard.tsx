@@ -20,9 +20,11 @@ import {
   saveReportConfig,
 } from '../utils/reportConfig';
 import {
-  buildWeeklyReport,
+  RANGE_OPTIONS,
+  buildReport,
   openGmailCompose,
   openMailto,
+  resolveReportRange,
   sendReportViaEmailJS,
 } from '../utils/weeklyReport';
 
@@ -61,7 +63,11 @@ export const ReportSettingsCard: React.FC<ReportSettingsCardProps> = React.memo(
       saveReportConfig(config);
     }, [config]);
 
-    const preview = useMemo(() => buildWeeklyReport(transactions), [transactions]);
+    const range = useMemo(() => resolveReportRange(config), [config]);
+    const preview = useMemo(
+      () => buildReport(transactions, { fromISO: range.fromISO, toISO: range.toISO }),
+      [transactions, range.fromISO, range.toISO]
+    );
     const emailOk = isValidEmail(config.email);
     const canSend = emailOk && !busy;
 
@@ -204,6 +210,62 @@ export const ReportSettingsCard: React.FC<ReportSettingsCardProps> = React.memo(
             </Field>
           </div>
 
+          {/* Report period */}
+          <div className="mt-4">
+            <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
+              Report period
+            </p>
+            <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
+              {RANGE_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => patch({ rangeMode: opt.value })}
+                  className={`rounded-lg border px-2 py-1.5 text-[11px] font-semibold transition ${
+                    config.rangeMode === opt.value
+                      ? 'border-indigo-300 bg-indigo-50/70 text-indigo-700 ring-1 ring-indigo-200'
+                      : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+
+            {config.rangeMode === 'custom' && (
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <div>
+                  <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                    From
+                  </label>
+                  <input
+                    type="date"
+                    value={config.customFrom || range.fromISO}
+                    onChange={(e) => patch({ customFrom: e.target.value })}
+                    className="field num !py-1.5 text-[11px]"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+                    To
+                  </label>
+                  <input
+                    type="date"
+                    value={config.customTo || range.toISO}
+                    onChange={(e) => patch({ customTo: e.target.value })}
+                    className="field num !py-1.5 text-[11px]"
+                  />
+                </div>
+              </div>
+            )}
+
+            <p className={`mt-1.5 text-[10px] font-semibold ${range.valid ? 'text-slate-400' : 'text-rose-600'}`}>
+              {range.valid
+                ? `${range.label} · ${range.days} ${range.days === 1 ? 'day' : 'days'} · ${preview.entryCount} entries`
+                : '“From” date “To” date se pehle honi chahiye'}
+            </p>
+          </div>
+
           {/* Delivery mode */}
           <div className="mt-4">
             <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
@@ -300,7 +362,7 @@ export const ReportSettingsCard: React.FC<ReportSettingsCardProps> = React.memo(
                     Template variables:{' '}
                     <code className="rounded bg-white px-1 py-0.5 text-[10px] text-slate-700">
                       to_email, subject, period, money_in, spends, balance, daily_avg,
-                      top_category, message, message_text
+                      top_category, entries, message, message_text
                     </code>
                     .{' '}
                     <a
@@ -332,7 +394,7 @@ export const ReportSettingsCard: React.FC<ReportSettingsCardProps> = React.memo(
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `ghar-ka-hisaab-weekly-${preview.toISO}.txt`;
+                    a.download = `ghar-ka-hisaab-${preview.fromISO}_to_${preview.toISO}.txt`;
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
@@ -363,22 +425,102 @@ export const ReportSettingsCard: React.FC<ReportSettingsCardProps> = React.memo(
               ))}
             </div>
 
-            <ul className="mt-2.5 space-y-1">
-              {preview.categories.slice(0, 3).map((c) => (
-                <li key={c.label} className="flex items-center justify-between text-[11px]">
-                  <span className="truncate font-medium text-slate-600">{c.label}</span>
-                  <span className="num shrink-0 font-bold text-slate-800">
+            {/* category split */}
+            <ul className="mt-3 space-y-1.5">
+              {preview.categories.slice(0, 4).map((c) => (
+                <li key={c.label} className="flex items-center gap-2 text-[11px]">
+                  <span
+                    className="h-1.5 w-1.5 shrink-0 rounded-full"
+                    style={{ backgroundColor: c.color }}
+                  />
+                  <span className="min-w-0 flex-1 truncate font-medium text-slate-600">
+                    {c.label}
+                  </span>
+                  <span className="h-1 w-14 shrink-0 overflow-hidden rounded-full bg-slate-100">
+                    <span
+                      className="block h-full rounded-full"
+                      style={{
+                        width: `${Math.max(4, c.percentage)}%`,
+                        backgroundColor: c.color,
+                      }}
+                    />
+                  </span>
+                  <span className="num w-16 shrink-0 text-right font-bold text-slate-800">
                     ₹{c.amount.toLocaleString('en-IN')}
-                    <span className="ml-1 font-medium text-slate-400">{c.percentage}%</span>
                   </span>
                 </li>
               ))}
               {preview.categories.length === 0 && (
                 <li className="text-[11px] font-medium text-slate-400">
-                  Is hafte koi spend nahi 🎉
+                  Is period mein koi spend nahi 🎉
                 </li>
               )}
             </ul>
+
+            {/* itemised day-by-day ledger */}
+            <div className="mt-3 border-t border-slate-100 pt-2.5">
+              <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-slate-400">
+                Karcha kaise hua · day by day
+              </p>
+
+              <div className="mt-1.5 max-h-[260px] overflow-y-auto pr-1">
+                {preview.dayGroups.length === 0 && (
+                  <p className="py-3 text-center text-[11px] font-medium text-slate-400">
+                    Is range mein koi entry nahi hai.
+                  </p>
+                )}
+
+                {preview.dayGroups.map((day) => (
+                  <div key={day.date} className="mb-1.5">
+                    <div className="flex items-center justify-between gap-2 rounded-md bg-slate-100/80 px-2 py-1">
+                      <span className="text-[10px] font-bold uppercase tracking-wide text-slate-600">
+                        {day.label}
+                      </span>
+                      <span className="num flex items-center gap-1.5 text-[10px] font-bold">
+                        {day.spend > 0 && <span className="text-slate-700">−₹{day.spend.toLocaleString('en-IN')}</span>}
+                        {day.income > 0 && (
+                          <span className="text-emerald-600">+₹{day.income.toLocaleString('en-IN')}</span>
+                        )}
+                      </span>
+                    </div>
+
+                    <ul className="mt-0.5 divide-y divide-slate-100">
+                      {day.items.map((item) => (
+                        <li key={item.id} className="flex items-center gap-2 py-1">
+                          <span
+                            className="h-1.5 w-1.5 shrink-0 rounded-full"
+                            style={{ backgroundColor: item.color }}
+                          />
+                          <span className="min-w-0 flex-1 truncate text-[11px] font-medium text-slate-700">
+                            {item.note}
+                          </span>
+                          <span className="hidden shrink-0 rounded bg-slate-100 px-1 py-px text-[9px] font-bold uppercase text-slate-500 sm:inline">
+                            {item.mode}
+                          </span>
+                          <span
+                            className={`num shrink-0 text-[11px] font-bold ${
+                              item.type === 'income' ? 'text-emerald-600' : 'text-slate-800'
+                            }`}
+                          >
+                            {item.type === 'income' ? '+' : '−'}₹
+                            {item.amount.toLocaleString('en-IN')}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-2 flex items-center justify-between rounded-md bg-slate-900 px-2.5 py-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-wide text-slate-300">
+                  Total spends · {preview.spendCount}
+                </span>
+                <span className="num text-[12px] font-bold text-white">
+                  ₹{preview.spend.toLocaleString('en-IN')}
+                </span>
+              </div>
+            </div>
           </div>
 
           {/* Actions */}
