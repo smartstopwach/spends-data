@@ -59,11 +59,17 @@ describe('Download tab', () => {
   it('offers both native and website install', () => {
     const html = renderToString(
       React.createElement(DownloadPage, {
-        pwa: { install: async () => {}, installed: false, manualSteps: null },
+        pwa: {
+          install: async () => 'manual' as const,
+          installed: false,
+          canNativePrompt: false,
+          platform: 'desktop' as const,
+        },
       })
     );
-    expect(html).toContain('Android app (APK)');
-    expect(html).toContain('Install this website');
+    expect(html).toContain('Android APK file');
+    expect(html).toContain('Install Spends Data');
+    expect(html).toContain('Download app');
     expect(html).toContain('All releases');
   });
 });
