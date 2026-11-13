@@ -7,12 +7,6 @@ interface AppNavProps {
   view: AppView;
   onNavigate: (view: AppView) => void;
   counts: { transactions: number; reports: number };
-  /**
-   * mobile: fixed bottom tab bar (phones). Must render OUTSIDE the sticky header,
-   * because a backdrop-filter ancestor would pin a fixed element to the header.
-   * desktop: segmented control inside the header (md and up).
-   */
-  variant: 'mobile' | 'desktop';
 }
 
 const ITEMS: Array<{ id: AppView; label: string; icon: React.ComponentType<{ className?: string }> }> = [
@@ -23,56 +17,22 @@ const ITEMS: Array<{ id: AppView; label: string; icon: React.ComponentType<{ cla
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
-export const AppNav: React.FC<AppNavProps> = ({ view, onNavigate, counts, variant }) => {
+/**
+ * Main navigation: one bottom tab bar on every screen size. It is fixed to the
+ * viewport and sits outside the sticky header, so its position stays correct.
+ * On wide screens it is centred and capped in width instead of stretching.
+ */
+export const AppNav: React.FC<AppNavProps> = ({ view, onNavigate, counts }) => {
   const badgeFor = (id: AppView): number | null => {
     if (id === 'transactions' && counts.transactions > 0) return counts.transactions;
     if (id === 'reports' && counts.reports > 0) return counts.reports;
     return null;
   };
 
-  if (variant === 'mobile') {
-    return (
-      <nav aria-label="Main navigation">
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-1px_12px_rgba(15,23,42,0.06)] backdrop-blur-md">
-          <div className="mx-auto flex max-w-md items-stretch">
-            {ITEMS.map((item) => {
-              const active = view === item.id;
-              const badge = badgeFor(item.id);
-              const Icon = item.icon;
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => onNavigate(item.id)}
-                  aria-current={active ? 'page' : undefined}
-                  className={`relative flex min-w-0 flex-1 flex-col items-center gap-0.5 px-0 pb-2 pt-2 text-[9px] font-semibold leading-none transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-400 ${
-                    active ? 'text-indigo-600' : 'text-slate-400'
-                  }`}
-                >
-                  <span className="relative">
-                    <Icon className="h-[18px] w-[18px]" />
-                    {badge !== null && (
-                      <span className="absolute -right-2 -top-1.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-indigo-600 px-1 text-[8px] font-bold text-white">
-                        {badge > 99 ? '99+' : badge}
-                      </span>
-                    )}
-                  </span>
-                  <span className="w-full truncate text-center">{item.label}</span>
-                  {active && (
-                    <span className="absolute inset-x-5 top-0 h-0.5 rounded-full bg-indigo-600" />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </nav>
-    );
-  }
-
   return (
-    <nav aria-label="Main navigation">
-        <div className="flex items-center gap-0.5 rounded-lg border border-slate-200 bg-white p-0.5 shadow-sm md:flex">
+    <nav aria-label="Main navigation" className="fixed inset-x-0 bottom-0 z-40 pointer-events-none">
+      <div className="pointer-events-auto mx-auto w-full border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-1px_12px_rgba(15,23,42,0.06)] backdrop-blur-md sm:max-w-xl sm:rounded-t-2xl lg:max-w-2xl">
+        <div className="flex items-stretch">
           {ITEMS.map((item) => {
             const active = view === item.id;
             const badge = badgeFor(item.id);
@@ -82,28 +42,26 @@ export const AppNav: React.FC<AppNavProps> = ({ view, onNavigate, counts, varian
                 key={item.id}
                 type="button"
                 onClick={() => onNavigate(item.id)}
-                aria-current={active}
-                className={`flex items-center gap-1 rounded-md px-2 py-1.5 text-[11px] font-semibold transition ${
-                  active
-                    ? 'bg-slate-900 text-white'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                aria-current={active ? 'page' : undefined}
+                className={`relative flex min-w-0 flex-1 flex-col items-center justify-center gap-1 px-1 py-2 text-[9px] font-semibold leading-none transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-400 sm:text-[11px] md:py-2.5 ${
+                  active ? 'text-indigo-600' : 'text-slate-400 hover:text-slate-600'
                 }`}
               >
-                <Icon className="h-3 w-3" />
-                <span>{item.label}</span>
-                {badge !== null && (
-                  <span
-                    className={`num rounded px-1 text-[10px] font-bold ${
-                      active ? 'bg-white/20 text-white' : 'bg-slate-200/80 text-slate-600'
-                    }`}
-                  >
-                    {badge > 99 ? '99+' : badge}
-                  </span>
-                )}
+                <span className="relative">
+                  <Icon className="h-[18px] w-[18px] sm:h-5 sm:w-5" />
+                  {badge !== null && (
+                    <span className="absolute -right-2 -top-1.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-indigo-600 px-1 text-[8px] font-bold text-white">
+                      {badge > 99 ? '99+' : badge}
+                    </span>
+                  )}
+                </span>
+                <span className="w-full truncate text-center">{item.label}</span>
+                {active && <span className="absolute inset-x-4 top-0 h-0.5 rounded-full bg-indigo-600 sm:inset-x-8" />}
               </button>
             );
           })}
         </div>
+      </div>
     </nav>
   );
 };

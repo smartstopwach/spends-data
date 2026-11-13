@@ -225,19 +225,8 @@ export const App: React.FC = () => {
           </div>
 
           <div className="flex shrink-0 items-center gap-1.5">
-            {/* Desktop nav + period controls live in the bar; on phones they get
-                their own row below so nothing is squeezed. */}
+            {/* Period controls live in the bar on wide screens; phones get their own row below. */}
             <div className="hidden items-center gap-1.5 md:flex">
-              <AppNav
-                variant="desktop"
-                view={view}
-                onNavigate={goTo}
-                counts={{
-                  transactions: periodTransactions.length,
-                  reports: reportConfig.enabled ? 1 : 0,
-                }}
-              />
-
               <PeriodSwitcher
                 period={periodInfo}
                 state={period}
@@ -355,9 +344,8 @@ export const App: React.FC = () => {
         </div>
       </header>
 
-      {/* Phone bottom tab bar. Rendered outside the header so its fixed positioning works. */}
+      {/* Main navigation (bottom tab bar, every screen size). Outside the header so fixed positioning works. */}
       <AppNav
-        variant="mobile"
         view={view}
         onNavigate={goTo}
         counts={{
@@ -383,7 +371,7 @@ export const App: React.FC = () => {
         </div>
       )}
 
-      <main className="mx-auto max-w-7xl px-3 pb-[calc(env(safe-area-inset-bottom,0px)+6.5rem)] pt-4 sm:px-6 sm:pt-5 md:pb-14">
+      <main className="mx-auto max-w-7xl px-3 pb-[calc(env(safe-area-inset-bottom,0px)+6.5rem)] pt-4 sm:px-6 sm:pt-5">
         {due && (
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5">
             <p className="flex items-center gap-2 text-[11px] font-semibold text-amber-900">
