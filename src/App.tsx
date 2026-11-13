@@ -34,7 +34,16 @@ import {
 } from './utils/native';
 import { PwaBanners } from './components/PwaBanners';
 import { DownloadPage } from './components/DownloadPage';
-import { shareSummary, vibrate } from './utils/notifications';
+import {
+  rememberPromptDismissed,
+  shareSummary,
+  shouldAskForNotifications,
+  loadNotificationSettings,
+  loadPromptDismissedAt,
+  vibrate,
+} from './utils/notifications';
+import { enableWebPush, pushPrefsFrom, workerConfig } from './utils/webPush';
+import { NotificationPrompt } from './components/NotificationPrompt';
 import { composeNotification } from './utils/notificationCopy';
 import { TrendCard } from './components/TrendCard';
 import { useEmailReport } from './hooks/useEmailReport';
@@ -81,6 +90,46 @@ export const App: React.FC = () => {
   const notifications = useNotifications();
   const storage = useStorageUsage(transactions.length);
   const pwa = usePwa();
+  const [promptOpen, setPromptOpen] = useState(false);
+
+  // Ask once, shortly after the app opens, if notifications are still undecided.
+  useEffect(() => {
+    const due = shouldAskForNotifications({
+      // Read storage directly: state from the hook is still the default on the first render.
+      enabled: loadNotificationSettings().enabled,
+      permission: notifications.permission,
+      native: isNative(),
+      dismissedAt: loadPromptDismissedAt(),
+      now: Date.now(),
+    });
+    if (!due) return;
+    const timer = window.setTimeout(() => setPromptOpen(true), 2500);
+    return () => window.clearTimeout(timer);
+    // Evaluated once on launch; the prompt's own buttons take over afterwards.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const allowNotifications = async () => {
+    setPromptOpen(false);
+    if (isNative()) {
+      // Android: the OS permission dialog, then reminders go into the phone's scheduler.
+      if (await ensureNotificationPermission()) {
+        notifications.update({ ...notifications.settings, enabled: true });
+      }
+      return;
+    }
+    // Web: the browser permission dialog. requestPermission turns the in-app toggle on when granted.
+    const result = await notifications.requestPermission();
+    if (result === 'granted' && workerConfig().ready) {
+      // Also register background (app-closed) delivery when the worker is configured.
+      await enableWebPush(pushPrefsFrom({ ...notifications.settings, enabled: true }));
+    }
+  };
+
+  const laterNotifications = () => {
+    setPromptOpen(false);
+    rememberPromptDismissed();
+  };
 
   const monthLabel = periodInfo.label;
   const reportRange = resolveReportRange(reportConfig);
@@ -794,6 +843,8 @@ export const App: React.FC = () => {
       </main>
 
       <PwaBanners />
+
+      {promptOpen && <NotificationPrompt onAllow={allowNotifications} onLater={laterNotifications} />}
     </div>
   );
 };

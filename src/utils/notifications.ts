@@ -122,3 +122,45 @@ export async function shareSummary(title: string, text: string): Promise<boolean
   }
   return false;
 }
+
+/* ── First-run permission prompt ─────────────────────────── */
+const PROMPT_KEY = 'spends_data_notif_prompt_v1';
+export const PROMPT_SNOOZE_MS = 7 * 24 * 60 * 60 * 1000;
+
+export function loadPromptDismissedAt(): number | null {
+  try {
+    const raw = window.localStorage.getItem(PROMPT_KEY);
+    const value = raw ? Number(raw) : NaN;
+    return Number.isFinite(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+export function rememberPromptDismissed(now: number = Date.now()): void {
+  try {
+    window.localStorage.setItem(PROMPT_KEY, String(now));
+  } catch {
+    // ignore
+  }
+}
+
+/**
+ * Whether to show the in-app "Allow notifications?" prompt. Pure, so it can be tested:
+ * - never when notifications are already on,
+ * - on the web only while the browser has not decided yet ('default'),
+ * - on Android always (the OS dialog handles the decision),
+ * - not again for 7 days after "Not now".
+ */
+export function shouldAskForNotifications(input: {
+  enabled: boolean;
+  permission: NotificationPermission | 'unsupported';
+  native: boolean;
+  dismissedAt: number | null;
+  now: number;
+}): boolean {
+  if (input.enabled) return false;
+  if (input.dismissedAt !== null && input.now - input.dismissedAt < PROMPT_SNOOZE_MS) return false;
+  if (input.native) return true;
+  return input.permission === 'default';
+}
