@@ -1,9 +1,9 @@
 import React, { useId, useMemo, useRef, useState } from 'react';
-import { ArrowDownLeft, ArrowUpRight, TrendingUp } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, PiggyBank, TrendingUp } from 'lucide-react';
 import { DailySpendPoint } from '../hooks/useSpendsStore';
 import { formatINR } from '../utils/mathAndFormat';
 
-type SeriesKey = 'spend' | 'income';
+type SeriesKey = 'spend' | 'income' | 'savings';
 
 interface TrendCardProps {
   dailySeries: DailySpendPoint[];
@@ -16,8 +16,8 @@ interface TrendCardProps {
 }
 
 const VIEW_W = 640;
-const VIEW_H = 196;
-const PAD = { top: 18, right: 6, bottom: 22, left: 6 };
+const VIEW_H = 210;
+const PAD = { top: 22, right: 10, bottom: 30, left: 10 };
 const PLOT_W = VIEW_W - PAD.left - PAD.right;
 const PLOT_H = VIEW_H - PAD.top - PAD.bottom;
 
@@ -27,24 +27,29 @@ const compactINR = (value: number): string => {
   return `₹${Math.round(value)}`;
 };
 
-/** Catmull-Rom → cubic bézier for a smooth, pleasing curve. */
-function smoothPath(points: Array<[number, number]>): string {
+/** Catmull-Rom → cubic bézier for a smooth, pleasing curve (clamped to the plot). */
+function smoothPath(points: Array<[number, number]>, minY = 0, maxY = Infinity): string {
+  const clamp = (value: number): number => Math.min(maxY, Math.max(minY, value));
+  const p0c = (index: number): [number, number] => {
+    const point = points[Math.max(0, Math.min(points.length - 1, index))];
+    return [point[0], clamp(point[1])];
+  };
   if (points.length === 0) return '';
   if (points.length === 1) return `M ${points[0][0]},${points[0][1]}`;
 
-  let d = `M ${points[0][0]},${points[0][1]}`;
   const tension = 0.17;
+  let d = `M ${points[0][0]},${clamp(points[0][1])}`;
 
   for (let i = 0; i < points.length - 1; i += 1) {
-    const p0 = points[i - 1] ?? points[i];
-    const p1 = points[i];
-    const p2 = points[i + 1];
-    const p3 = points[i + 2] ?? p2;
+    const p0 = p0c(i - 1);
+    const p1 = p0c(i);
+    const p2 = p0c(i + 1);
+    const p3 = p0c(i + 2);
 
     const c1x = p1[0] + (p2[0] - p0[0]) * tension;
-    const c1y = p1[1] + (p2[1] - p0[1]) * tension;
+    const c1y = clamp(p1[1] + (p2[1] - p0[1]) * tension);
     const c2x = p2[0] - (p3[0] - p1[0]) * tension;
-    const c2y = p2[1] - (p3[1] - p1[1]) * tension;
+    const c2y = clamp(p2[1] - (p3[1] - p1[1]) * tension);
 
     d += ` C ${c1x.toFixed(2)},${c1y.toFixed(2)} ${c2x.toFixed(2)},${c2y.toFixed(2)} ${p2[0].toFixed(
       2
@@ -73,23 +78,32 @@ export const TrendCard: React.FC<TrendCardProps> = React.memo(
       let max = 0;
       let spendTotal = 0;
       let incomeTotal = 0;
+      let savingsTotal = 0;
       let active = 0;
 
+      const valueOf = (point: DailySpendPoint): number => {
+        if (series === 'spend') return point.spend;
+        if (series === 'income') return point.income;
+        return Math.max(0, point.income - point.spend);
+      };
+
       for (const point of dailySeries) {
-        const value = series === 'spend' ? point.spend : point.income;
+        const value = valueOf(point);
         if (value > max) max = value;
         if (point.spend > 0 || point.income > 0) active += 1;
         spendTotal += point.spend;
         incomeTotal += point.income;
+        savingsTotal += valueOf(point);
       }
 
       const niceMax = max <= 0 ? 100 : Math.ceil((max * 1.18) / 50) * 50;
       const step = n > 1 ? PLOT_W / (n - 1) : 0;
 
       const coords: Array<[number, number]> = dailySeries.map((point, i) => {
-        const value = series === 'spend' ? point.spend : point.income;
+        const value = Math.min(Math.max(0, valueOf(point)), niceMax);
         const x = PAD.left + i * step;
-        const y = PAD.top + PLOT_H - (value / niceMax) * PLOT_H;
+        const ratio = niceMax > 0 ? value / niceMax : 0;
+        const y = PAD.top + PLOT_H - Math.min(1, Math.max(0, ratio)) * PLOT_H;
         return [x, y];
       });
 
@@ -102,14 +116,18 @@ export const TrendCard: React.FC<TrendCardProps> = React.memo(
         points: coords,
         maxPeak: max,
         maxValue: niceMax,
-        totals: { spend: spendTotal, income: incomeTotal },
+        totals: { spend: spendTotal, income: incomeTotal, savings: savingsTotal },
         activeDays: active,
         labels: idxs.map((day) => ({ day, x: PAD.left + (day - 1) * step })),
         hasData: max > 0,
       };
     }, [dailySeries, series]);
 
-    const linePath = useMemo(() => smoothPath(points), [points]);
+    const baselineY = PAD.top + PLOT_H;
+    const linePath = useMemo(
+      () => smoothPath(points, PAD.top, baselineY),
+      [points, baselineY]
+    );
     const areaPath = useMemo(() => {
       if (points.length === 0) return '';
       const baseY = PAD.top + PLOT_H;
@@ -124,7 +142,13 @@ export const TrendCard: React.FC<TrendCardProps> = React.memo(
     }, [budget, dailySeries.length, maxValue]);
 
     const hovered = hover !== null ? dailySeries[hover] ?? null : null;
-    const hoverValue = hovered ? (series === 'spend' ? hovered.spend : hovered.income) : 0;
+    const valueOfPoint = (point: DailySpendPoint | null): number => {
+      if (!point) return 0;
+      if (series === 'spend') return point.spend;
+      if (series === 'income') return point.income;
+      return Math.max(0, point.income - point.spend);
+    };
+    const hoverValue = valueOfPoint(hovered);
 
     const handleMove = (event: React.MouseEvent<HTMLDivElement>) => {
       const el = wrapRef.current;
@@ -136,9 +160,19 @@ export const TrendCard: React.FC<TrendCardProps> = React.memo(
       setHover(index);
     };
 
-    const isLight = series === 'spend';
-    const stroke = isLight ? '#4f46e5' : '#059669';
-    const gradTop = isLight ? '#4f46e5' : '#10b981';
+    const palette: Record<SeriesKey, { stroke: string; grad: string; tone: string }> = {
+      spend: { stroke: '#4f46e5', grad: '#4f46e5', tone: 'indigo' },
+      income: { stroke: '#059669', grad: '#10b981', tone: 'emerald' },
+      savings: { stroke: '#0d9488', grad: '#14b8a6', tone: 'teal' },
+    };
+    const stroke = palette[series].stroke;
+    const gradTop = palette[series].grad;
+    const activeTone =
+      series === 'spend'
+        ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-slate-200'
+        : series === 'income'
+        ? 'bg-white text-emerald-600 shadow-sm ring-1 ring-slate-200'
+        : 'bg-white text-teal-600 shadow-sm ring-1 ring-slate-200';
 
     const clampedPct = Math.min(100, Math.max(0, budgetUsedPercent));
     const overBudget = budget > 0 && spend > budget;
@@ -158,9 +192,7 @@ export const TrendCard: React.FC<TrendCardProps> = React.memo(
               type="button"
               onClick={() => setSeries('spend')}
               className={`flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold transition ${
-                series === 'spend'
-                  ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-slate-200'
-                  : 'text-slate-500 hover:text-slate-800'
+                series === 'spend' ? activeTone : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               <ArrowUpRight className="h-3 w-3" />
@@ -170,13 +202,21 @@ export const TrendCard: React.FC<TrendCardProps> = React.memo(
               type="button"
               onClick={() => setSeries('income')}
               className={`flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold transition ${
-                series === 'income'
-                  ? 'bg-white text-emerald-600 shadow-sm ring-1 ring-slate-200'
-                  : 'text-slate-500 hover:text-slate-800'
+                series === 'income' ? activeTone : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               <ArrowDownLeft className="h-3 w-3" />
               Money in
+            </button>
+            <button
+              type="button"
+              onClick={() => setSeries('savings')}
+              className={`flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold transition ${
+                series === 'savings' ? activeTone : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <PiggyBank className="h-3 w-3" />
+              Savings
             </button>
           </div>
         </div>
@@ -190,9 +230,17 @@ export const TrendCard: React.FC<TrendCardProps> = React.memo(
               aria-hidden
             />
             <span className="num font-semibold text-slate-800">
-              {formatINR(series === 'spend' ? totals.spend : totals.income)}
+              {formatINR(
+                series === 'spend'
+                  ? totals.spend
+                  : series === 'income'
+                  ? totals.income
+                  : totals.savings
+              )}
             </span>
-            <span>{series === 'spend' ? 'total out' : 'total in'}</span>
+            <span>
+              {series === 'spend' ? 'total out' : series === 'income' ? 'total in' : 'net saved'}
+            </span>
           </span>
           {hasData && (
             <span className="num flex items-center gap-1 text-slate-400">
@@ -218,9 +266,11 @@ export const TrendCard: React.FC<TrendCardProps> = React.memo(
         >
           <svg
             viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
-            className="h-[168px] w-full sm:h-[188px]"
+            className="h-[176px] w-full sm:h-[196px]"
             role="img"
-            aria-label={`Daily ${series === 'spend' ? 'spending' : 'incoming money'} for ${monthLabel}`}
+            aria-label={`Daily ${
+              series === 'spend' ? 'spending' : series === 'income' ? 'incoming money' : 'savings'
+            } for ${monthLabel}`}
           >
             <defs>
               <linearGradient id={`fill-${uid}`} x1="0" y1="0" x2="0" y2="1">
@@ -316,7 +366,7 @@ export const TrendCard: React.FC<TrendCardProps> = React.memo(
                 textAnchor="middle"
                 className="fill-slate-300 text-[11px] font-semibold"
               >
-                No {series === 'spend' ? 'spends' : 'money in'} recorded yet
+                No {series === 'spend' ? 'spends' : series === 'income' ? 'money in' : 'savings'} recorded yet
               </text>
             )}
 
@@ -344,17 +394,31 @@ export const TrendCard: React.FC<TrendCardProps> = React.memo(
             )}
 
             {/* x labels */}
-            {labels.map((label) => (
-              <text
-                key={label.day}
-                x={label.x}
-                y={VIEW_H - 4}
-                textAnchor={label.day === 1 ? 'start' : label.day === dailySeries.length ? 'end' : 'middle'}
-                className="fill-slate-400 text-[9px] font-semibold"
-              >
-                {label.day}
-              </text>
-            ))}
+            {labels.map((label) => {
+              const anchor =
+                label.day === 1
+                  ? 'start'
+                  : label.day === dailySeries.length
+                  ? 'end'
+                  : 'middle';
+              return (
+                <text
+                  key={label.day}
+                  x={
+                    anchor === 'start'
+                      ? PAD.left
+                      : anchor === 'end'
+                      ? PAD.left + PLOT_W
+                      : label.x
+                  }
+                  y={VIEW_H - 9}
+                  textAnchor={anchor}
+                  className="fill-slate-400 text-[9px] font-semibold"
+                >
+                  {label.day}
+                </text>
+              );
+            })}
           </svg>
         </div>
 
