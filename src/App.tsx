@@ -3,7 +3,6 @@ import {
   Bell,
   ChevronDown,
   ChevronLeft,
-  ChevronRight,
   Download,
   FileJson,
   LayoutDashboard,
@@ -20,6 +19,7 @@ import { TransactionTabsCard } from './components/TransactionTabsCard';
 import { RecentPreview } from './components/RecentPreview';
 import { ReportSettingsCard } from './components/ReportSettingsCard';
 import { AppNav, AppView } from './components/AppNav';
+import { PeriodSwitcher } from './components/PeriodSwitcher';
 import { SettingsCard } from './components/SettingsCard';
 import { useNotifications } from './hooks/useNotifications';
 import { useStorageUsage } from './hooks/useStorageUsage';
@@ -38,13 +38,7 @@ import { APP_VERSION } from './version';
 import { useSpendsStore } from './hooks/useSpendsStore';
 import { SpendCategory, TransactionType } from './types';
 import { buildReport, resolveReportRange } from './utils/weeklyReport';
-import {
-  exportBackupJSON,
-  exportTransactionsToCSV,
-  formatMonthLabel,
-  getCurrentMonthKey,
-  shiftMonthKey,
-} from './utils/mathAndFormat';
+import { exportBackupJSON, exportTransactionsToCSV } from './utils/mathAndFormat';
 
 type View = AppView;
 
@@ -59,8 +53,9 @@ export const App: React.FC = () => {
   const {
     transactions,
     periodTransactions,
-    selectedMonth,
-    setSelectedMonth,
+    period,
+    periodInfo,
+    setPeriod,
     budgets,
     walletSummary,
     periodAnalytics,
@@ -83,8 +78,7 @@ export const App: React.FC = () => {
   const storage = useStorageUsage(transactions.length);
   const pwa = usePwa();
 
-  const currentMonthKey = getCurrentMonthKey();
-  const monthLabel = formatMonthLabel(selectedMonth);
+  const monthLabel = periodInfo.label;
   const reportRange = resolveReportRange(reportConfig);
   const reportPreview = useMemo(
     () => buildReport(transactions, { fromISO: reportRange.fromISO, toISO: reportRange.toISO }),
@@ -138,12 +132,17 @@ export const App: React.FC = () => {
     (tx: Parameters<typeof addTransaction>[0]) => {
       addTransaction(tx);
       vibrate([8]);
-      const txMonth = tx.date.slice(0, 7);
-      if (selectedMonth !== 'all' && txMonth !== selectedMonth) {
-        setSelectedMonth(txMonth);
+      // Keep the active period in sync with the entry's date.
+      if (period.mode === 'month') {
+        const txMonth = tx.date.slice(0, 7);
+        if (txMonth !== period.anchor) setPeriod({ mode: 'month', anchor: txMonth });
+      } else if (period.mode === 'week') {
+        if (tx.date < periodInfo.fromISO || tx.date > periodInfo.toISO) {
+          setPeriod({ mode: 'week', anchor: tx.date });
+        }
       }
     },
-    [addTransaction, selectedMonth, setSelectedMonth]
+    [addTransaction, period, periodInfo, setPeriod]
   );
 
   const handleQuickAdd = useCallback((mode: TransactionType) => {
@@ -187,46 +186,14 @@ export const App: React.FC = () => {
               }}
             />
 
-            {/* Month selector */}
-            <div className="flex items-center rounded-lg border border-slate-200 bg-white p-0.5 shadow-sm">
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedMonth(
-                    selectedMonth === 'all' ? currentMonthKey : shiftMonthKey(selectedMonth, -1)
-                  );
-                  setSelectedCategory('all');
-                }}
-                aria-label="Previous month"
-                className="rounded-md p-1 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
-              >
-                <ChevronLeft className="h-3.5 w-3.5" />
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedMonth(selectedMonth === 'all' ? currentMonthKey : 'all');
-                  setSelectedCategory('all');
-                }}
-                title="Toggle All Time"
-                className="num whitespace-nowrap px-1.5 text-[11px] font-bold text-slate-800 transition hover:text-indigo-600"
-              >
-                {selectedMonth === 'all' ? 'All time' : monthLabel.replace(/ \d{4}$/, '')}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedMonth(
-                    selectedMonth === 'all' ? currentMonthKey : shiftMonthKey(selectedMonth, 1)
-                  );
-                  setSelectedCategory('all');
-                }}
-                aria-label="Next month"
-                className="rounded-md p-1 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800"
-              >
-                <ChevronRight className="h-3.5 w-3.5" />
-              </button>
-            </div>
+            <PeriodSwitcher
+              period={periodInfo}
+              state={period}
+              onChange={(next) => {
+                setPeriod(next);
+                setSelectedCategory('all');
+              }}
+            />
 
             {/* Menu */}
             <div className="relative">
@@ -353,7 +320,7 @@ export const App: React.FC = () => {
                 </h1>
                 <p className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[12px] font-medium text-slate-500">
                   <span>
-                    {monthLabel} · <span className="num">{periodTransactions.length}</span>{' '}
+                    {periodInfo.label} · <span className="num">{periodTransactions.length}</span>{' '}
                     {periodTransactions.length === 1 ? 'entry' : 'entries'}
                   </span>
                   <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-500">
@@ -450,8 +417,20 @@ export const App: React.FC = () => {
                   Recent entries
                 </h1>
                 <p className="mt-1 text-[12px] font-medium text-slate-500">
-                  {monthLabel} · all transactions with filters, search and sorting
+                  {periodInfo.label} ·{' '}
+                  <span className="num">{periodTransactions.length}</span>{' '}
+                  {periodTransactions.length === 1 ? 'transaction' : 'transactions'}
                 </p>
+                <div className="mt-2.5">
+                  <PeriodSwitcher
+                    period={periodInfo}
+                    state={period}
+                    onChange={(next) => {
+                      setPeriod(next);
+                      setSelectedCategory('all');
+                    }}
+                  />
+                </div>
               </div>
 
               <div className="flex items-center gap-2">

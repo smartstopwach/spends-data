@@ -1,1 +1,0 @@
-import{W as n}from"./app-BUGRmrXP.js";class r extends n{async show(e){}async hide(e){}}export{r as SplashScreenWeb};

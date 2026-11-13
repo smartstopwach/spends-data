@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ALL_CATEGORY_MAP, createSampleTransactions, SPEND_CATEGORIES } from '../constants';
 import { IncomeSource, MonthlyBudgets, PaymentMode, SpendCategory, Transaction, TransactionType } from '../types';
-import { getCurrentMonthKey, getDaysInMonth, getTodayISO } from '../utils/mathAndFormat';
+import { getCurrentMonthKey, getDaysInMonth, getTodayISO, shiftISODate } from '../utils/mathAndFormat';
+import { PeriodMode, PeriodState, currentPeriod, resolvePeriod } from '../utils/period';
 
 const TX_STORAGE_KEY = 'ghar_ka_hisaab_tx_v1';
 const BUDGET_STORAGE_KEY = 'ghar_ka_hisaab_budgets_v1';
@@ -80,7 +81,14 @@ export function useSpendsStore() {
     return { default: 8500 };
   });
 
-  const [selectedMonth, setSelectedMonth] = useState<string>(() => getCurrentMonthKey());
+  const [period, setPeriodState] = useState<PeriodState>(() => currentPeriod('month'));
+  const periodInfo = useMemo(() => resolvePeriod(period), [period]);
+
+  const setPeriod = useCallback((next: PeriodState) => setPeriodState(next), []);
+  const setPeriodMode = useCallback(
+    (mode: PeriodMode) => setPeriodState(currentPeriod(mode)),
+    []
+  );
 
   useEffect(() => {
     try {
@@ -153,7 +161,7 @@ export function useSpendsStore() {
       const withoutOldDemo = prev.filter((tx) => !tx.id.startsWith('demo-'));
       return [...demo, ...withoutOldDemo];
     });
-    setSelectedMonth(getCurrentMonthKey());
+    setPeriodState(currentPeriod('month'));
   }, []);
 
   const clearAllData = useCallback(() => {
@@ -241,11 +249,13 @@ export function useSpendsStore() {
     };
   }, [transactions]);
 
-  // Filtered transactions for selectedMonth ('YYYY-MM' or 'all')
+  // Transactions inside the active period (week / month / all time)
   const periodTransactions = useMemo(() => {
-    if (selectedMonth === 'all') return transactions;
-    return transactions.filter((tx) => tx.date.startsWith(selectedMonth));
-  }, [transactions, selectedMonth]);
+    if (periodInfo.mode === 'all') return transactions;
+    return transactions.filter(
+      (tx) => tx.date >= periodInfo.fromISO && tx.date <= periodInfo.toISO
+    );
+  }, [transactions, periodInfo]);
 
   // Period Analytics
   const periodAnalytics = useMemo(() => {
@@ -293,33 +303,56 @@ export function useSpendsStore() {
       .filter((item) => item.amount > 0)
       .sort((a, b) => b.amount - a.amount);
 
-    const currentMonthKey = getCurrentMonthKey();
-    const activeMonthKey = selectedMonth === 'all' ? currentMonthKey : selectedMonth;
-    const daysInMonth = getDaysInMonth(activeMonthKey);
     const todayStr = getTodayISO();
     const todayDay = Number(todayStr.split('-')[2]);
+    const currentMonthKey = getCurrentMonthKey();
+    const activeMonthKey = periodInfo.mode === 'month' ? period.anchor : currentMonthKey;
+    const daysInMonth = getDaysInMonth(activeMonthKey);
 
     let elapsedDays = daysInMonth;
     let remainingDays = 0;
 
-    if (selectedMonth === 'all') {
+    if (periodInfo.mode === 'all') {
       const uniqueDates = new Set(periodTransactions.map((t) => t.date));
       elapsedDays = Math.max(1, uniqueDates.size);
       remainingDays = Math.max(0, daysInMonth - todayDay + 1);
-    } else if (selectedMonth === currentMonthKey) {
-      elapsedDays = Math.max(1, todayDay);
-      remainingDays = Math.max(1, daysInMonth - todayDay + 1);
-    } else if (selectedMonth > currentMonthKey) {
+    } else if (periodInfo.toISO >= todayStr && periodInfo.fromISO <= todayStr) {
+      // Active period containing today → count only elapsed days
+      const [fy, fm, fd] = periodInfo.fromISO.split('-').map(Number);
+      const [ty, tm, td] = todayStr.split('-').map(Number);
+      elapsedDays = Math.max(
+        1,
+        Math.round((Date.UTC(ty, tm - 1, td) - Date.UTC(fy, fm - 1, fd)) / 86_400_000) + 1
+      );
+      remainingDays = Math.max(
+        1,
+        Math.round(
+          (Date.UTC(
+            ...(periodInfo.toISO.split('-').map((v, i) => (i === 1 ? Number(v) - 1 : Number(v))) as [
+              number,
+              number,
+              number
+            ])
+          ) -
+            Date.UTC(ty, tm - 1, td)) /
+            86_400_000
+        ) + 1
+      );
+    } else if (periodInfo.fromISO > todayStr) {
       elapsedDays = 1;
       remainingDays = daysInMonth;
+    } else {
+      // Fully elapsed period
+      elapsedDays = Math.max(1, periodTransactions.length ? new Set(periodTransactions.map((t) => t.date)).size : 1);
+      remainingDays = 0;
     }
 
     const dailyAvgSpend = spend > 0 ? Math.round(spend / elapsedDays) : 0;
 
     const configuredBudget =
-      selectedMonth !== 'all'
-        ? budgets[selectedMonth] ?? budgets.default ?? 0
-        : budgets[currentMonthKey] ?? budgets.default ?? 0;
+      periodInfo.mode === 'month'
+        ? budgets[period.anchor] ?? budgets.default ?? 0
+        : budgets[activeMonthKey] ?? budgets.default ?? 0;
 
     // Effective reference limit: user's monthly budget if > 0, else monthly income
     const effectiveLimit = configuredBudget > 0 ? configuredBudget : income;
@@ -328,16 +361,13 @@ export function useSpendsStore() {
       remainingDays > 0 && budgetRemaining > 0 ? Math.round(budgetRemaining / remainingDays) : 0;
     const budgetUsedPercent = effectiveLimit > 0 ? Math.min(999, Math.round((spend / effectiveLimit) * 100)) : 0;
 
-    // Daily series for the active month
+    // Daily series for the active period (week → 7 days, month → days of month)
     const dailyMap: Record<number, { spend: number; income: number }> = {};
     for (let d = 1; d <= daysInMonth; d++) {
       dailyMap[d] = { spend: 0, income: 0 };
     }
 
-    const chartTx =
-      selectedMonth === 'all'
-        ? transactions.filter((t) => t.date.startsWith(currentMonthKey))
-        : periodTransactions;
+    const chartTx = periodTransactions;
 
     for (const tx of chartTx) {
       const dayNum = Number(tx.date.split('-')[2]);
@@ -348,19 +378,38 @@ export function useSpendsStore() {
     }
 
     const dailySeries: DailySpendPoint[] = [];
-    for (let d = 1; d <= daysInMonth; d++) {
-      const dateIso = `${activeMonthKey}-${String(d).padStart(2, '0')}`;
-      dailySeries.push({
-        day: d,
-        date: dateIso,
-        spend: Math.round(dailyMap[d].spend * 100) / 100,
-        income: Math.round(dailyMap[d].income * 100) / 100,
-        isToday: dateIso === todayStr,
-        isFuture: dateIso > todayStr,
-      });
+
+    if (periodInfo.mode === 'week') {
+      for (let i = 0; i < 7; i += 1) {
+        const dateIso = shiftISODate(periodInfo.fromISO, i);
+        const dayNum = Number(dateIso.split('-')[2]);
+        const isSameMonth = dateIso.slice(0, 7) === activeMonthKey;
+        const bucket = isSameMonth ? dailyMap[dayNum] : undefined;
+        dailySeries.push({
+          day: i + 1,
+          date: dateIso,
+          spend: Math.round((bucket?.spend ?? 0) * 100) / 100,
+          income: Math.round((bucket?.income ?? 0) * 100) / 100,
+          isToday: dateIso === todayStr,
+          isFuture: dateIso > todayStr,
+        });
+      }
+    } else {
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dateIso = `${activeMonthKey}-${String(d).padStart(2, '0')}`;
+        dailySeries.push({
+          day: d,
+          date: dateIso,
+          spend: Math.round(dailyMap[d].spend * 100) / 100,
+          income: Math.round(dailyMap[d].income * 100) / 100,
+          isToday: dateIso === todayStr,
+          isFuture: dateIso > todayStr,
+        });
+      }
     }
 
     return {
+      periodInfo,
       income: Math.round(income * 100) / 100,
       homeOnlyIncome: Math.round(homeOnlyIncome * 100) / 100,
       spend: Math.round(spend * 100) / 100,
@@ -379,13 +428,15 @@ export function useSpendsStore() {
       dailySeries,
       activeMonthKey,
     };
-  }, [periodTransactions, selectedMonth, budgets, transactions]);
+  }, [periodTransactions, period, periodInfo, budgets, transactions]);
 
   return {
     transactions,
     periodTransactions,
-    selectedMonth,
-    setSelectedMonth,
+    period,
+    periodInfo,
+    setPeriod,
+    setPeriodMode,
     budgets,
     setBudgetForMonth,
     walletSummary,
