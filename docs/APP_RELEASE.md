@@ -1,80 +1,102 @@
-# Shipping Spends Data as an installable app
+# Spends Data — Android release guide (Capacitor)
 
-Spends Data ships as a **Progressive Web App** first (instant install from the browser,
-no store review), and the same `dist/` bundle can be wrapped with **Capacitor** for a
-Google Play Store release.
+Spends Data is now a **two-target app** from one codebase:
 
-## 1. Web / PWA release (what GitHub Pages already serves)
+| Target | What it is | Where it ships |
+| --- | --- | --- |
+| **Web / PWA** | Installable, offline, auto-updating | `https://smartstopwach.github.io/spends-data/` |
+| **Android app** | Real APK/AAB wrapped with Capacitor, OS-level scheduled notifications | Google Play Store |
 
-```bash
-npm run build   # writes dist/ + syncs index.html, assets/, manifest, icons and sw.js to the repo root
-```
+The Android project lives in `android/` and is already generated and configured.
 
-What the build produces:
+## Project configuration
 
-| File | Purpose |
+| Setting | Value |
 | --- | --- |
-| `index.html` + `assets/app-<hash>.js/css` | Hashed, cache-busted app bundle |
-| `manifest.webmanifest` | Install metadata, icons, shortcuts |
-| `sw.js` | Offline shell, asset caching, instant update flow |
-| `icon-192.png`, `icon-512.png` | Standard app icons |
-| `maskable-192/512.png` | Adaptive (Android) icons |
-| `apple-touch-icon.png` | iOS home-screen icon |
+| App name | Spends Data |
+| Application ID | `app.spendsdata.tracker` |
+| Version name / code | `1.1.0` / `2` (`android/app/build.gradle`) |
+| Web dir | `dist` (`capacitor.config.ts`) |
+| Icons | `res/mipmap-*` generated from `public/icon-512.png` (adaptive, background `#4338CA`) |
+| Splash | `res/drawable-*/splash.png` brand gradient with the rupee mark |
+| Notification icon | `res/drawable/ic_stat_spends.png` |
 
-Install flow: open the site → browser shows **Install Spends Data** → the app opens
-full-screen with no address bar and works offline. A new deploy triggers the in-app
-**Update available → Restart** banner (`src/hooks/usePwa.ts`).
+### Permissions declared
 
-### Releasing a new version
-
-1. Bump `APP_VERSION` in `src/version.ts` and add a changelog entry (this powers the
-   "What's new" sheet shown once per version).
-2. Bump `VERSION` inside `public/sw.js` so old caches are purged.
-3. Bump `version` in `package.json`.
-4. `npm run build` and push — the service worker picks the update up automatically.
-
-## 2. Google Play Store release (Capacitor)
-
-One-time setup:
-
-```bash
-npm install @capacitor/core @capacitor/cli @capacitor/android
-npx cap add android
+```
+POST_NOTIFICATIONS      # Android 13+ notification permission
+SCHEDULE_EXACT_ALARM    # fire reminders at the chosen time
+USE_EXACT_ALARM
+RECEIVE_BOOT_COMPLETED  # re-arm reminders after a reboot
+VIBRATE
+INTERNET
 ```
 
-Every release:
+## Everyday workflow
 
 ```bash
-npm run build          # rebuilds dist/
-npx cap sync android   # copies dist/ into the Android project
-npx cap open android   # opens Android Studio
+npm run android:apk      # build web → sync → assembleDebug APK
+npm run android:bundle   # build web → sync → signed release AAB
+npm run android          # build web → sync → open Android Studio
 ```
 
-In Android Studio:
+Output APK: `android/app/build/outputs/apk/debug/app-debug.apk`
+Output AAB: `android/app/build/outputs/bundle/release/app-release.aab`
 
-- **Application ID**: `app.spendsdata.tracker` (already set in `capacitor.config.ts`)
-- **Version code / name**: `versionCode` must increase on every upload, `versionName`
-  should match `APP_VERSION` (e.g. `1.1.0`).
-- **Signing**: *Build → Generate Signed Bundle / APK* → create an upload keystore,
-  then build an **Android App Bundle (.aab)**.
-- **Store listing assets**: use `public/icon-512.png` for the store icon, and capture
-  phone screenshots from the running app.
+### First-run prerequisites
 
-Play Console checklist:
+- JDK 17 and Android Studio (or the Android SDK + `ANDROID_HOME`).
+- `android/local.properties` with `sdk.dir=/path/to/Android/sdk` (created by Android Studio).
+
+## Signing a release build
+
+```bash
+keytool -genkey -v -keystore spends-data-release.jks \
+  -keyalg RSA -keysize 2048 -validity 10000 -alias spendsdata
+```
+
+Create `android/keystore.properties` (never commit it — it is git-ignored):
+
+```properties
+storeFile=../spends-data-release.jks
+storePassword=********
+keyAlias=spendsdata
+keyPassword=********
+```
+
+Then in `android/app/build.gradle` add a `signingConfigs.release` block referencing those
+properties and apply it to `buildTypes.release`. Build the bundle with
+`npm run android:bundle`.
+
+## What the native build adds over the PWA
+
+- **Background reminders** — `@capacitor/local-notifications` schedules repeating
+  notifications *inside the OS*, so they arrive even when the app is closed or the phone
+  restarts. The app mirrors its notification settings into native scheduling automatically
+  (`src/hooks/useNotifications.ts` → `scheduleNativeReminders`).
+- **Native haptics** — `@capacitor/haptics` impact feedback instead of `navigator.vibrate`.
+- **Native share sheet** — `@capacitor/share`.
+- **Status bar + splash** styling matched to the brand (`@capacitor/status-bar`,
+  `@capacitor/splash-screen`).
+- Offline-first behaviour still comes from the bundled `dist/` inside the app.
+
+## Play Console checklist
 
 - [ ] App name: **Spends Data**
 - [ ] Short description: `Track spends, money in and balance — offline, no account.`
-- [ ] Full description: highlights inline math, transactions history, weekly email
-      reports, offline PWA, data stored on device
-- [ ] Data safety form: **no data collected or shared**; data stays in local storage
-- [ ] Privacy policy URL (a short static page is enough)
-- [ ] Content rating questionnaire → Finance / Productivity utility
-- [ ] Internal testing track first, then production rollout
+- [ ] Full description: inline math amounts, day-wise history, category breakdown,
+      weekly email reports, offline support, data stays on device
+- [ ] Data safety: **no data collected**, no data shared, no trackers
+- [ ] Notifications declared as *optional* (daily reminder, budget alert, report reminder)
+- [ ] Privacy policy URL
+- [ ] Content rating: Finance / Productivity utility
+- [ ] Upload to **Internal testing** first → Production rollout
+- [ ] Screenshots from a phone (portrait) + the 512×512 icon from `public/icon-512.png`
 
-## 3. Notes
+## Releasing an update
 
-- Everything runs client-side: no backend, no accounts, no analytics calls.
-- Weekly email reports use either Gmail compose (manual send) or EmailJS (automatic),
-  configured by the user inside the app.
-- localStorage keys are versioned (`spends_data_*`, `ghar_ka_hisaab_*`) so existing
-  installs keep their data.
+1. Bump `APP_VERSION` in `src/version.ts` + changelog entry (web "What's new" sheet).
+2. Bump `VERSION` in `public/sw.js` (cache busting).
+3. Bump `versionCode` **and** `versionName` in `android/app/build.gradle`.
+4. `npm run build` and push for the web/PWA release.
+5. `npm run android:bundle` and upload the new `.aab` to Play Console.

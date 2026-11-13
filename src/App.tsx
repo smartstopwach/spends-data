@@ -25,6 +25,12 @@ import { useNotifications } from './hooks/useNotifications';
 import { useStorageUsage } from './hooks/useStorageUsage';
 import { usePwa } from './hooks/usePwa';
 import { shareSummary, vibrate } from './utils/notifications';
+import {
+  ensureNotificationPermission,
+  isNative,
+  scheduleNativeReminders,
+  shareText,
+} from './utils/native';
 import { PwaBanners } from './components/PwaBanners';
 import { TrendCard } from './components/TrendCard';
 import { useEmailReport } from './hooks/useEmailReport';
@@ -671,6 +677,18 @@ export const App: React.FC = () => {
                   );
                 },
               }}
+              nativeApp={isNative()}
+              onScheduleNativeReminders={async (enabled) => {
+                const granted = await ensureNotificationPermission();
+                if (!granted) return false;
+                return scheduleNativeReminders({
+                  enabled,
+                  hour: notifications.settings.reminderHour,
+                  daily: notifications.settings.dailyReminder,
+                  budgetAlert: notifications.settings.budgetAlerts,
+                  reportReminder: notifications.settings.reportReminder,
+                });
+              }}
               onExportCsv={() => exportTransactionsToCSV(transactions)}
               onExportBackup={() => exportBackupJSON(transactions, budgets)}
               onImportBackup={(raw) => importBackupData(raw)}
@@ -686,19 +704,24 @@ export const App: React.FC = () => {
                   fromISO: reportRange.fromISO,
                   toISO: reportRange.toISO,
                 });
-                void shareSummary(
-                  'My Spends Data summary',
-                  `Spends ${week.periodLabel}\nSpends: ₹${week.spend.toLocaleString(
-                    'en-IN'
-                  )}\nMoney in: ₹${week.income.toLocaleString('en-IN')}\nBalance: ₹${week.walletBalance.toLocaleString(
-                    'en-IN'
-                  )}\n\nMade with Spends Data`
-                ).then((shared) => {
-                  if (!shared) {
-                    void navigator.clipboard?.writeText(
-                      `Spends ${week.spend.toLocaleString('en-IN')} · Balance ${week.walletBalance.toLocaleString('en-IN')}`
-                    );
-                  }
+                const summary =
+                  `Spends Data · ${week.periodLabel}\n` +
+                  `Spends: ₹${week.spend.toLocaleString('en-IN')}\n` +
+                  `Money in: ₹${week.income.toLocaleString('en-IN')}\n` +
+                  `Balance: ₹${week.walletBalance.toLocaleString('en-IN')}`;
+                const copyFallback = () =>
+                  void navigator.clipboard?.writeText(
+                    `Spends ₹${week.spend.toLocaleString('en-IN')} · Balance ₹${week.walletBalance.toLocaleString('en-IN')}`
+                  );
+
+                if (isNative()) {
+                  void shareText('My Spends Data summary', summary).then((ok) => {
+                    if (!ok) copyFallback();
+                  });
+                  return;
+                }
+                void shareSummary('My Spends Data summary', summary).then((shared) => {
+                  if (!shared) copyFallback();
                 });
               }}
               onResetAll={() => {
