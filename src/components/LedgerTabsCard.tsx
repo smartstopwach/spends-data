@@ -97,7 +97,7 @@ export const LedgerTabsCard: React.FC<LedgerTabsCardProps> = React.memo(
             </p>
           </div>
 
-          <label className="relative flex items-center">
+          <label className="relative flex w-full items-center sm:w-auto">
             <Search className="pointer-events-none absolute left-2.5 h-3.5 w-3.5 text-slate-400" />
             <input
               type="search"
@@ -107,7 +107,7 @@ export const LedgerTabsCard: React.FC<LedgerTabsCardProps> = React.memo(
                 setLimit(PAGE_SIZE);
               }}
               placeholder="Search note or amount"
-              className="field !w-[190px] !py-1.5 !pl-8 text-xs sm:!w-[220px]"
+              className="field !py-1.5 !pl-8 text-xs sm:!w-[220px]"
               aria-label="Search transactions"
             />
           </label>
