@@ -5,6 +5,8 @@ import {
   formatDisplayDate,
   formatINR,
   getDaysInMonth,
+  getTodayISO,
+  shiftISODate,
   shiftMonthKey,
 } from './mathAndFormat';
 
@@ -79,5 +81,21 @@ describe('Sample Demo Dataset & Balance Hisaab', () => {
     expect(income).toBe(10700);
     expect(spend).toBe(5008);
     expect(income - spend).toBe(5692);
+  });
+});
+
+describe('shiftISODate (daily date handling)', () => {
+  it('moves to yesterday and month/year boundaries correctly', () => {
+    expect(shiftISODate('2026-11-13', -1)).toBe('2026-11-12');
+    expect(shiftISODate('2026-11-01', -1)).toBe('2026-10-31');
+    expect(shiftISODate('2026-01-01', -1)).toBe('2025-12-31');
+    expect(shiftISODate('2026-12-31', 1)).toBe('2027-01-01');
+    expect(shiftISODate('2024-02-28', 1)).toBe('2024-02-29');
+  });
+
+  it('keeps today helpers consistent for a given reference date', () => {
+    const now = new Date(2026, 10, 13, 23, 59);
+    expect(getTodayISO(now)).toBe('2026-11-13');
+    expect(shiftISODate(getTodayISO(now), -1)).toBe('2026-11-12');
   });
 });

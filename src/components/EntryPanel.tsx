@@ -3,7 +3,13 @@ import { ArrowDownLeft, ArrowUpRight, Check, CornerDownLeft, Plus } from 'lucide
 import { INCOME_SOURCES, SPEND_CATEGORIES } from '../constants';
 import { NewTransactionInput } from '../hooks/useSpendsStore';
 import { IncomeSource, PaymentMode, SpendCategory, TransactionType } from '../types';
-import { evaluateAmountExpression, formatINR, getTodayISO } from '../utils/mathAndFormat';
+import {
+  evaluateAmountExpression,
+  formatINR,
+  getTodayISO,
+  shiftISODate,
+} from '../utils/mathAndFormat';
+import { useTodayISO } from '../hooks/useTodayISO';
 import { CategoryIcon } from './CategoryIcon';
 
 interface EntryPanelProps {
@@ -21,11 +27,13 @@ const MODES: Array<{ id: PaymentMode; label: string }> = [
 
 export const EntryPanel: React.FC<EntryPanelProps> = React.memo(
   ({ activeType, onChangeType, onAdd, focusTrigger }) => {
+    const today = useTodayISO();
     const [amountRaw, setAmountRaw] = useState('');
     const [spendCat, setSpendCat] = useState<SpendCategory>('food');
     const [incomeSrc, setIncomeSrc] = useState<IncomeSource>('home');
     const [paymentMode, setPaymentMode] = useState<PaymentMode>('upi');
     const [date, setDate] = useState<string>(() => getTodayISO());
+    const [dateTouched, setDateTouched] = useState(false);
     const [note, setNote] = useState('');
     const [saved, setSaved] = useState<string | null>(null);
 
@@ -34,6 +42,11 @@ export const EntryPanel: React.FC<EntryPanelProps> = React.memo(
     useEffect(() => {
       if (focusTrigger > 0) inputRef.current?.focus();
     }, [focusTrigger]);
+
+    // Keep the date locked to the real "today" unless a date was picked manually.
+    useEffect(() => {
+      if (!dateTouched) setDate(today);
+    }, [today, dateTouched]);
 
     const isIncome = activeType === 'income';
     const evaluated = evaluateAmountExpression(amountRaw);
@@ -73,13 +86,18 @@ export const EntryPanel: React.FC<EntryPanelProps> = React.memo(
         note: note.trim() || label || 'Entry',
       });
 
-      const msg = `${isIncome ? '+' : '−'}${formatINR(evaluated.value)} added to ${
+      const formatted = formatINR(evaluated.value);
+      const dayNote =
+        date === today ? 'today' : date === shiftISODate(today, -1) ? 'yesterday' : date;
+      const msg = `${isIncome ? '+' : '−'}${formatted} added to ${
         isIncome ? 'wallet' : 'spends'
-      }`;
+      } · ${dayNote}`;
       setSaved(msg);
       window.setTimeout(() => setSaved((m) => (m === msg ? null : m)), 2400);
       setAmountRaw('');
       setNote('');
+      setDateTouched(false);
+      setDate(today);
       inputRef.current?.focus();
     };
 
@@ -247,14 +265,53 @@ export const EntryPanel: React.FC<EntryPanelProps> = React.memo(
             </div>
 
             <div>
-              <label htmlFor="date" className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500">
-                Date
-              </label>
+              <div className="mb-1.5 flex items-center justify-between gap-1">
+                <label
+                  htmlFor="date"
+                  className="text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-500"
+                >
+                  Date
+                </label>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDate(today);
+                      setDateTouched(false);
+                    }}
+                    className={`rounded px-1.5 py-0.5 text-[10px] font-bold transition ${
+                      date === today
+                        ? 'bg-indigo-50 text-indigo-600'
+                        : 'text-slate-400 hover:bg-slate-100 hover:text-slate-700'
+                    }`}
+                  >
+                    Today
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDate(shiftISODate(today, -1));
+                      setDateTouched(true);
+                    }}
+                    className={`rounded px-1.5 py-0.5 text-[10px] font-bold transition ${
+                      date === shiftISODate(today, -1)
+                        ? 'bg-indigo-50 text-indigo-600'
+                        : 'text-slate-400 hover:bg-slate-100 hover:text-slate-700'
+                    }`}
+                  >
+                    Yesterday
+                  </button>
+                </div>
+              </div>
               <input
                 id="date"
                 type="date"
                 value={date}
-                onChange={(e) => setDate(e.target.value)}
+                max={today}
+                onChange={(e) => {
+                  setDate(e.target.value);
+                  setDateTouched(true);
+                }}
                 className="field num"
               />
             </div>

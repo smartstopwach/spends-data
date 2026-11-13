@@ -78,6 +78,18 @@ export const App: React.FC = () => {
     }
   }, []);
 
+  /** Add entry and make sure the active month shows it right away. */
+  const handleAdd = useCallback(
+    (tx: Parameters<typeof addTransaction>[0]) => {
+      addTransaction(tx);
+      const txMonth = tx.date.slice(0, 7);
+      if (selectedMonth !== 'all' && txMonth !== selectedMonth) {
+        setSelectedMonth(txMonth);
+      }
+    },
+    [addTransaction, selectedMonth, setSelectedMonth]
+  );
+
   const handleQuickAdd = useCallback((mode: TransactionType) => {
     setActiveType(mode);
     setFocusTrigger((n) => n + 1);
@@ -337,7 +349,7 @@ export const App: React.FC = () => {
                   <EntryPanel
                     activeType={activeType}
                     onChangeType={setActiveType}
-                    onAdd={addTransaction}
+                    onAdd={handleAdd}
                     focusTrigger={focusTrigger}
                   />
                 </div>

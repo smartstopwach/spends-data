@@ -1,7 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import {
   ArrowUpDown,
+  CalendarDays,
   Inbox,
+  List,
   Search,
   Sparkles,
   Trash2,
@@ -9,7 +11,7 @@ import {
 } from 'lucide-react';
 import { ALL_CATEGORY_MAP } from '../constants';
 import { SpendCategory, Transaction } from '../types';
-import { formatDisplayDate, formatINR } from '../utils/mathAndFormat';
+import { formatDisplayDate, formatINR, getTodayISO, shiftISODate } from '../utils/mathAndFormat';
 import { CategoryIcon } from './CategoryIcon';
 
 type LedgerTab = 'all' | 'spend' | 'income';
@@ -31,8 +33,94 @@ const TABS: Array<{ id: LedgerTab; label: string }> = [
 ];
 
 const MODE_LABEL: Record<string, string> = { upi: 'UPI', cash: 'Cash', bank: 'Bank' };
-
 const PAGE_SIZE = 12;
+
+const dayHeading = (date: string): string => {
+  const today = getTodayISO();
+  if (date === today) return 'Today';
+  if (date === shiftISODate(today, -1)) return 'Yesterday';
+  const [y, m, d] = date.split('-').map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString('en-IN', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: y !== Number(today.slice(0, 4)) ? 'numeric' : undefined,
+  });
+};
+
+const LedgerRow: React.FC<{
+  tx: Transaction;
+  onDelete: (id: string) => void;
+  showDate?: boolean;
+}> = ({ tx, onDelete, showDate = false }) => {
+  const meta = ALL_CATEGORY_MAP[tx.category];
+  const isIncome = tx.type === 'income';
+
+  return (
+    <li
+      className={`group grid grid-cols-[1fr_auto] items-center gap-3 px-4 py-2.5 transition-colors hover:bg-slate-50/80 md:px-5 ${
+        showDate
+          ? 'md:grid-cols-[92px_1fr_130px_104px_96px_36px]'
+          : 'md:grid-cols-[1fr_130px_104px_96px_36px]'
+      }`}
+    >
+      {showDate && (
+        <span className="num hidden text-[11px] font-medium text-slate-500 md:block">
+          {formatDisplayDate(tx.date)}
+        </span>
+      )}
+
+      <div className="flex min-w-0 items-center gap-2.5">
+        <span
+          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+            meta?.bgClass ?? 'bg-slate-100'
+          } ${meta?.textClass ?? 'text-slate-600'}`}
+        >
+          <CategoryIcon name={meta?.iconName ?? 'MoreHorizontal'} className="h-4 w-4" />
+        </span>
+        <div className="min-w-0">
+          <p className="truncate text-[13px] font-semibold text-slate-900">
+            {tx.note || meta?.label || 'Entry'}
+          </p>
+          <p className="truncate text-[11px] font-medium text-slate-400 md:hidden">
+            {meta?.label ?? tx.category} · {MODE_LABEL[tx.paymentMode] ?? tx.paymentMode}
+          </p>
+        </div>
+      </div>
+
+      <span className="hidden truncate text-[11px] font-semibold text-slate-500 md:block">
+        {meta?.label ?? tx.category}
+      </span>
+
+      <span className="hidden md:block">
+        <span className="rounded-md border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-500">
+          {MODE_LABEL[tx.paymentMode] ?? tx.paymentMode}
+        </span>
+      </span>
+
+      <span
+        className={`num text-right text-[13px] font-bold ${
+          isIncome ? 'text-emerald-600' : 'text-slate-900'
+        }`}
+      >
+        {isIncome ? '+' : '−'}
+        {formatINR(tx.amount)}
+      </span>
+
+      <span className="flex justify-end">
+        <button
+          type="button"
+          onClick={() => onDelete(tx.id)}
+          aria-label="Delete entry"
+          title="Delete"
+          className="rounded-md p-1.5 text-slate-300 transition hover:bg-rose-50 hover:text-rose-600 focus-visible:opacity-100 md:opacity-0 md:group-hover:opacity-100"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </button>
+      </span>
+    </li>
+  );
+};
 
 export const LedgerTabsCard: React.FC<LedgerTabsCardProps> = React.memo(
   ({
@@ -47,6 +135,7 @@ export const LedgerTabsCard: React.FC<LedgerTabsCardProps> = React.memo(
     const [tab, setTab] = useState<LedgerTab>('all');
     const [query, setQuery] = useState('');
     const [sortDesc, setSortDesc] = useState(true);
+    const [grouped, setGrouped] = useState(true);
     const [limit, setLimit] = useState(PAGE_SIZE);
 
     const counts = useMemo(() => {
@@ -81,6 +170,27 @@ export const LedgerTabsCard: React.FC<LedgerTabsCardProps> = React.memo(
 
     const visible = rows.slice(0, limit);
 
+    /** Day-wise buckets (in current sort order) for the visible window. */
+    const dayGroups = useMemo(() => {
+      const groups: Array<{
+        date: string;
+        items: Transaction[];
+        income: number;
+        spend: number;
+      }> = [];
+      for (const tx of visible) {
+        let bucket = groups[groups.length - 1];
+        if (!bucket || bucket.date !== tx.date) {
+          bucket = { date: tx.date, items: [], income: 0, spend: 0 };
+          groups.push(bucket);
+        }
+        bucket.items.push(tx);
+        if (tx.type === 'income') bucket.income += tx.amount;
+        else bucket.spend += tx.amount;
+      }
+      return groups;
+    }, [visible]);
+
     const handleTab = (next: LedgerTab) => {
       setTab(next);
       setLimit(PAGE_SIZE);
@@ -94,6 +204,7 @@ export const LedgerTabsCard: React.FC<LedgerTabsCardProps> = React.memo(
             <h2 className="text-sm font-semibold text-slate-900">Recent Hisaab</h2>
             <p className="mt-0.5 text-xs font-medium text-slate-500">
               {monthLabel} · {rows.length} {rows.length === 1 ? 'record' : 'records'}
+              {grouped && dayGroups.length > 0 ? ` · ${dayGroups.length} days` : ''}
             </p>
           </div>
 
@@ -114,7 +225,7 @@ export const LedgerTabsCard: React.FC<LedgerTabsCardProps> = React.memo(
         </div>
 
         {/* Tab bar */}
-        <div className="flex items-center justify-between gap-2 border-b border-slate-200/80 bg-slate-50/60 px-3 py-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/80 bg-slate-50/60 px-3 py-2">
           <div role="tablist" aria-label="Ledger filters" className="flex items-center gap-1">
             {TABS.map((t) => {
               const active = tab === t.id;
@@ -144,15 +255,31 @@ export const LedgerTabsCard: React.FC<LedgerTabsCardProps> = React.memo(
             })}
           </div>
 
-          <button
-            type="button"
-            onClick={() => setSortDesc((s) => !s)}
-            className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-[11px] font-semibold text-slate-500 transition hover:bg-white hover:text-slate-800"
-            title="Toggle sort order"
-          >
-            <ArrowUpDown className="h-3 w-3" />
-            <span className="hidden sm:inline">{sortDesc ? 'Newest' : 'Oldest'}</span>
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setGrouped((g) => !g)}
+              title="Toggle day-wise grouping"
+              className={`flex items-center gap-1 rounded-lg px-2 py-1.5 text-[11px] font-semibold transition ${
+                grouped
+                  ? 'bg-white text-indigo-600 shadow-sm ring-1 ring-slate-200'
+                  : 'text-slate-500 hover:bg-white hover:text-slate-800'
+              }`}
+            >
+              {grouped ? <CalendarDays className="h-3 w-3" /> : <List className="h-3 w-3" />}
+              <span className="hidden sm:inline">{grouped ? 'Day-wise' : 'Flat list'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setSortDesc((s) => !s)}
+              className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-[11px] font-semibold text-slate-500 transition hover:bg-white hover:text-slate-800"
+              title="Toggle sort order"
+            >
+              <ArrowUpDown className="h-3 w-3" />
+              <span className="hidden sm:inline">{sortDesc ? 'Newest' : 'Oldest'}</span>
+            </button>
+          </div>
         </div>
 
         {/* Active category filter */}
@@ -171,7 +298,7 @@ export const LedgerTabsCard: React.FC<LedgerTabsCardProps> = React.memo(
           </div>
         )}
 
-        {/* Table */}
+        {/* Body */}
         {visible.length === 0 ? (
           <div className="px-5 py-12 text-center">
             <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 text-slate-400">
@@ -194,10 +321,51 @@ export const LedgerTabsCard: React.FC<LedgerTabsCardProps> = React.memo(
               </button>
             )}
           </div>
+        ) : grouped ? (
+          /* ── Day-wise groups with per-day totals ── */
+          <div>
+            {dayGroups.map((group) => {
+              const net = Math.round((group.income - group.spend) * 100) / 100;
+              return (
+                <div key={group.date}>
+                  <div className="flex items-center justify-between gap-2 border-y border-slate-100 bg-slate-50/70 px-4 py-1.5 md:px-5">
+                    <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.07em] text-slate-500">
+                      <CalendarDays className="h-3 w-3 text-slate-400" />
+                      {dayHeading(group.date)}
+                      <span className="num font-medium normal-case tracking-normal text-slate-400">
+                        · {group.items.length}
+                      </span>
+                    </span>
+                    <span className="flex items-center gap-2 text-[10px] font-bold">
+                      {group.income > 0 && (
+                        <span className="num text-emerald-600">+{formatINR(group.income)}</span>
+                      )}
+                      {group.spend > 0 && (
+                        <span className="num text-slate-600">−{formatINR(group.spend)}</span>
+                      )}
+                      <span
+                        className={`num rounded px-1.5 py-0.5 ${
+                          net >= 0 ? 'bg-indigo-50 text-indigo-600' : 'bg-rose-50 text-rose-600'
+                        }`}
+                      >
+                        net {net >= 0 ? '+' : '−'}
+                        {formatINR(Math.abs(net))}
+                      </span>
+                    </span>
+                  </div>
+                  <ul className="divide-y divide-slate-100">
+                    {group.items.map((tx) => (
+                      <LedgerRow key={tx.id} tx={tx} onDelete={onDelete} />
+                    ))}
+                  </ul>
+                </div>
+              );
+            })}
+          </div>
         ) : (
+          /* ── Flat list with a date column ── */
           <>
-            {/* Column header (desktop) */}
-            <div className="hidden grid-cols-[92px_1fr_130px_104px_84px_40px] items-center gap-3 border-b border-slate-200/80 bg-white px-5 py-2 text-[10px] font-bold uppercase tracking-[0.08em] text-slate-400 md:grid">
+            <div className="hidden grid-cols-[92px_1fr_130px_104px_96px_36px] items-center gap-3 border-b border-slate-200/80 bg-white px-5 py-2 text-[10px] font-bold uppercase tracking-[0.08em] text-slate-400 md:grid">
               <span>Date</span>
               <span>Description</span>
               <span>Category</span>
@@ -205,85 +373,24 @@ export const LedgerTabsCard: React.FC<LedgerTabsCardProps> = React.memo(
               <span className="text-right">Amount</span>
               <span />
             </div>
-
             <ul className="divide-y divide-slate-100">
-              {visible.map((tx) => {
-                const meta = ALL_CATEGORY_MAP[tx.category];
-                const isIncome = tx.type === 'income';
-                return (
-                  <li
-                    key={tx.id}
-                    className="group grid grid-cols-[1fr_auto] items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50/80 md:grid-cols-[92px_1fr_130px_104px_84px_40px] md:px-5"
-                  >
-                    <span className="num order-2 hidden text-[11px] font-medium text-slate-500 md:order-none md:block">
-                      {formatDisplayDate(tx.date)}
-                    </span>
-
-                    <div className="order-1 flex min-w-0 items-center gap-2.5 md:order-none">
-                      <span
-                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
-                          meta?.bgClass ?? 'bg-slate-100'
-                        } ${meta?.textClass ?? 'text-slate-600'}`}
-                      >
-                        <CategoryIcon name={meta?.iconName ?? 'MoreHorizontal'} className="h-4 w-4" />
-                      </span>
-                      <div className="min-w-0">
-                        <p className="truncate text-[13px] font-semibold text-slate-900">
-                          {tx.note || meta?.label || 'Entry'}
-                        </p>
-                        <p className="truncate text-[11px] font-medium text-slate-400 md:hidden">
-                          {meta?.label ?? tx.category} · {formatDisplayDate(tx.date)}
-                        </p>
-                      </div>
-                    </div>
-
-                    <span className="order-3 hidden truncate rounded-md bg-slate-100 px-2 py-1 text-[11px] font-semibold text-slate-600 md:order-none md:inline-block md:bg-transparent md:px-0 md:py-0">
-                      {meta?.label ?? tx.category}
-                    </span>
-
-                    <span className="order-4 hidden md:order-none md:block">
-                      <span className="rounded-md border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-500">
-                        {MODE_LABEL[tx.paymentMode] ?? tx.paymentMode}
-                      </span>
-                    </span>
-
-                    <span
-                      className={`num order-2 text-right text-[13px] font-bold md:order-none ${
-                        isIncome ? 'text-emerald-600' : 'text-slate-900'
-                      }`}
-                    >
-                      {isIncome ? '+' : '−'}
-                      {formatINR(tx.amount).replace('₹', '₹')}
-                    </span>
-
-                    <span className="order-5 flex justify-end md:order-none">
-                      <button
-                        type="button"
-                        onClick={() => onDelete(tx.id)}
-                        aria-label="Delete entry"
-                        title="Delete"
-                        className="rounded-md p-1.5 text-slate-300 opacity-0 transition hover:bg-rose-50 hover:text-rose-600 focus-visible:opacity-100 group-hover:opacity-100"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </span>
-                  </li>
-                );
-              })}
+              {visible.map((tx) => (
+                <LedgerRow key={tx.id} tx={tx} onDelete={onDelete} showDate />
+              ))}
             </ul>
-
-            {rows.length > visible.length && (
-              <div className="border-t border-slate-200/80 px-5 py-3 text-center">
-                <button
-                  type="button"
-                  onClick={() => setLimit((l) => l + PAGE_SIZE)}
-                  className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
-                >
-                  Show {Math.min(PAGE_SIZE, rows.length - visible.length)} more
-                </button>
-              </div>
-            )}
           </>
+        )}
+
+        {rows.length > visible.length && (
+          <div className="border-t border-slate-200/80 px-5 py-3 text-center">
+            <button
+              type="button"
+              onClick={() => setLimit((l) => l + PAGE_SIZE)}
+              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+            >
+              Show {Math.min(PAGE_SIZE, rows.length - visible.length)} more
+            </button>
+          </div>
         )}
 
         {/* Footer */}

@@ -47,6 +47,11 @@ export function getDaysInMonth(monthKey: string): number {
   return new Date(Number(yearStr), Number(monthStr), 0).getDate();
 }
 
+export function shiftISODate(dateStr: string, deltaDays: number): string {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return getTodayISO(new Date(y, m - 1, d + deltaDays));
+}
+
 export function formatDisplayDate(dateStr: string, todayStr: string = getTodayISO()): string {
   if (dateStr === todayStr) return 'Today (Aaj)';
   const [ty, tm, td] = todayStr.split('-').map(Number);
