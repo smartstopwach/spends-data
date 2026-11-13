@@ -88,3 +88,16 @@ self.addEventListener('fetch', (event) => {
     })()
   );
 });
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    (async () => {
+      const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+      for (const client of all) {
+        if ('focus' in client) return client.focus();
+      }
+      return self.clients.openWindow('./');
+    })()
+  );
+});

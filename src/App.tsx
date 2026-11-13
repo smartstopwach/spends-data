@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   ListOrdered,
   Mail,
+  Settings,
   RotateCcw,
   Sparkles,
 } from 'lucide-react';
@@ -18,6 +19,12 @@ import { KpiCards } from './components/KpiCards';
 import { TransactionTabsCard } from './components/TransactionTabsCard';
 import { RecentPreview } from './components/RecentPreview';
 import { ReportSettingsCard } from './components/ReportSettingsCard';
+import { AppNav, AppView } from './components/AppNav';
+import { SettingsCard } from './components/SettingsCard';
+import { useNotifications } from './hooks/useNotifications';
+import { useStorageUsage } from './hooks/useStorageUsage';
+import { usePwa } from './hooks/usePwa';
+import { shareSummary, vibrate } from './utils/notifications';
 import { PwaBanners } from './components/PwaBanners';
 import { TrendCard } from './components/TrendCard';
 import { useEmailReport } from './hooks/useEmailReport';
@@ -33,13 +40,13 @@ import {
   shiftMonthKey,
 } from './utils/mathAndFormat';
 
-type View = 'home' | 'transactions' | 'reports';
+type View = AppView;
 
 const readHashView = (): View => {
   if (typeof window === 'undefined') return 'home';
   const hash = window.location.hash.replace('#', '');
   if (hash === 'ledger' || hash === 'records') return 'transactions';
-  return hash === 'transactions' || hash === 'reports' ? hash : 'home';
+  return hash === 'transactions' || hash === 'reports' || hash === 'settings' ? hash : 'home';
 };
 
 export const App: React.FC = () => {
@@ -57,6 +64,7 @@ export const App: React.FC = () => {
     clearDemoTransactions,
     loadDemoData,
     clearAllData,
+    importBackupData,
   } = useSpendsStore();
 
   const [view, setView] = useState<View>(readHashView);
@@ -65,6 +73,9 @@ export const App: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<SpendCategory | 'all'>('all');
   const [menuOpen, setMenuOpen] = useState(false);
   const { config: reportConfig, update: updateReportConfig, markSent, due } = useEmailReport();
+  const notifications = useNotifications();
+  const storage = useStorageUsage(transactions.length);
+  const pwa = usePwa();
 
   const currentMonthKey = getCurrentMonthKey();
   const monthLabel = formatMonthLabel(selectedMonth);
@@ -96,9 +107,31 @@ export const App: React.FC = () => {
   }, []);
 
   /** Add entry and make sure the active month shows it right away. */
+  const transactionsToday = useMemo(() => {
+    const today = new Date();
+    const iso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(
+      today.getDate()
+    ).padStart(2, '0')}`;
+    return transactions.filter((tx) => tx.date === iso).length;
+  }, [transactions]);
+
+  // Evaluate device reminders (daily nudge / budget alert / report reminder).
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      notifications.evaluate({
+        spendCountToday: transactionsToday,
+        budgetUsedPercent: periodAnalytics.budgetUsedPercent,
+        reportDue: due,
+      });
+    }, 4000);
+    return () => window.clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [transactionsToday, due, periodAnalytics.budgetUsedPercent, notifications.settings.enabled]);
+
   const handleAdd = useCallback(
     (tx: Parameters<typeof addTransaction>[0]) => {
       addTransaction(tx);
+      vibrate([8]);
       const txMonth = tx.date.slice(0, 7);
       if (selectedMonth !== 'all' && txMonth !== selectedMonth) {
         setSelectedMonth(txMonth);
@@ -139,58 +172,14 @@ export const App: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-1.5">
-            {/* Section nav */}
-            <nav className="flex items-center gap-0.5 rounded-lg border border-slate-200 bg-white p-0.5 shadow-sm">
-              <button
-                type="button"
-                onClick={() => goTo('home')}
-                aria-current={view === 'home'}
-                className={`flex items-center gap-1 rounded-md px-2 py-1.5 text-[11px] font-semibold transition ${
-                  view === 'home'
-                    ? 'bg-slate-900 text-white'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                }`}
-              >
-                <LayoutDashboard className="h-3 w-3" />
-                <span className="hidden xs:inline sm:inline">Home</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => goTo('transactions')}
-                aria-current={view === 'transactions'}
-                className={`flex items-center gap-1 rounded-md px-2 py-1.5 text-[11px] font-semibold transition ${
-                  view === 'transactions'
-                    ? 'bg-slate-900 text-white'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                }`}
-              >
-                <ListOrdered className="h-3 w-3" />
-                <span>Transactions</span>
-                <span
-                  className={`num rounded px-1 text-[10px] font-bold ${
-                    view === 'transactions' ? 'bg-white/20 text-white' : 'bg-slate-200/80 text-slate-600'
-                  }`}
-                >
-                  {periodTransactions.length}
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => goTo('reports')}
-                aria-current={view === 'reports'}
-                className={`relative flex items-center gap-1 rounded-md px-2 py-1.5 text-[11px] font-semibold transition ${
-                  view === 'reports'
-                    ? 'bg-slate-900 text-white'
-                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                }`}
-              >
-                <Mail className="h-3 w-3" />
-                <span className="hidden sm:inline">Reports</span>
-                {reportConfig.enabled && (
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden />
-                )}
-              </button>
-            </nav>
+            <AppNav
+              view={view}
+              onNavigate={goTo}
+              counts={{
+                transactions: periodTransactions.length,
+                reports: reportConfig.enabled ? 1 : 0,
+              }}
+            />
 
             {/* Month selector */}
             <div className="flex items-center rounded-lg border border-slate-200 bg-white p-0.5 shadow-sm">
@@ -330,7 +319,7 @@ export const App: React.FC = () => {
         </div>
       )}
 
-      <main className="mx-auto max-w-7xl px-4 pb-14 pt-5 sm:px-6">
+      <main className="mx-auto max-w-7xl px-4 pb-28 pt-5 sm:px-6 md:pb-14">
         {due && (
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5">
             <p className="flex items-center gap-2 text-[11px] font-semibold text-amber-900">
@@ -515,7 +504,7 @@ export const App: React.FC = () => {
               monthLabel={monthLabel}
             />
           </>
-        ) : (
+        ) : view === 'reports' ? (
           <>
             {/* ── Reports — weekly email digest ─────────────── */}
             <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
@@ -648,6 +637,76 @@ export const App: React.FC = () => {
                 </section>
               </div>
             </div>
+          </>
+        ) : (
+          <>
+            {/* ── Settings ───────────────────────────────── */}
+            <div className="mb-4">
+              <h1 className="flex items-center gap-2 text-lg font-bold tracking-tight text-slate-900 sm:text-xl">
+                <Settings className="h-4 w-4 text-indigo-500" />
+                Settings
+              </h1>
+              <p className="mt-1 text-[12px] font-medium text-slate-500">
+                Notifications, storage, backups and app options.
+              </p>
+            </div>
+
+            <SettingsCard
+              storage={storage}
+              transactionCount={transactions.length}
+              installed={pwa.installed}
+              canInstall={pwa.canInstall}
+              onInstall={pwa.install}
+              notifications={{
+                settings: notifications.settings,
+                permission: notifications.permission,
+                supported: notifications.supported,
+                onChange: notifications.update,
+                onRequestPermission: notifications.requestPermission,
+                onTest: async () => {
+                  await notifications.notify(
+                    'Spends Data',
+                    'Notifications are working. You will get reminders like this.',
+                    'test'
+                  );
+                },
+              }}
+              onExportCsv={() => exportTransactionsToCSV(transactions)}
+              onExportBackup={() => exportBackupJSON(transactions, budgets)}
+              onImportBackup={(raw) => importBackupData(raw)}
+              onPersistStorage={async () => {
+                try {
+                  return (await navigator.storage?.persist?.()) ?? false;
+                } catch {
+                  return false;
+                }
+              }}
+              onShareSummary={() => {
+                const week = buildReport(transactions, {
+                  fromISO: reportRange.fromISO,
+                  toISO: reportRange.toISO,
+                });
+                void shareSummary(
+                  'My Spends Data summary',
+                  `Spends ${week.periodLabel}\nSpends: ₹${week.spend.toLocaleString(
+                    'en-IN'
+                  )}\nMoney in: ₹${week.income.toLocaleString('en-IN')}\nBalance: ₹${week.walletBalance.toLocaleString(
+                    'en-IN'
+                  )}\n\nMade with Spends Data`
+                ).then((shared) => {
+                  if (!shared) {
+                    void navigator.clipboard?.writeText(
+                      `Spends ${week.spend.toLocaleString('en-IN')} · Balance ${week.walletBalance.toLocaleString('en-IN')}`
+                    );
+                  }
+                });
+              }}
+              onResetAll={() => {
+                clearAllData();
+                setView('home');
+                if (typeof window !== 'undefined') history.replaceState(null, '', location.pathname);
+              }}
+            />
           </>
         )}
 

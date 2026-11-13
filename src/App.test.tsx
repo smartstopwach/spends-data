@@ -14,6 +14,8 @@ describe('Full App Render Smoke Test', () => {
     expect(html).toContain('Money In');
     expect(html).toContain('Total Spends');
     expect(html).toContain('Latest Activity');
+    expect(html).toContain('Transactions');
+    expect(html).toContain('Settings');
     expect(html).toContain('₹5,692');
   });
 
