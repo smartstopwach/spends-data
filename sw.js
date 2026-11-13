@@ -1,5 +1,5 @@
 /* Spends Data service worker — offline shell + instant updates. */
-const VERSION = 'spends-data-v1.1.0';
+const VERSION = 'spends-data-v1.2.0';
 const SHELL_CACHE = `${VERSION}-shell`;
 const ASSET_CACHE = `${VERSION}-assets`;
 const SHELL_FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png'];
