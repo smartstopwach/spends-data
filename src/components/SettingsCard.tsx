@@ -7,6 +7,7 @@ import {
   HardDrive,
   Lock,
   Share2,
+  Smartphone,
   ShieldCheck,
   Sparkles,
   Trash2,
@@ -33,6 +34,8 @@ interface SettingsCardProps {
     } | null;
   };
   transactionCount: number;
+  installed: boolean;
+  onOpenDownload: () => void;
   onExportCsv: () => void;
   onExportBackup: () => void;
   onImportBackup: (raw: string) => { ok: boolean; message: string };
@@ -85,6 +88,8 @@ export const SettingsCard: React.FC<SettingsCardProps> = ({
   storage,
   notifications,
   transactionCount,
+  installed,
+  onOpenDownload,
   onExportCsv,
   onExportBackup,
   onImportBackup,
@@ -419,21 +424,43 @@ export const SettingsCard: React.FC<SettingsCardProps> = ({
         )}
       </section>
 
-      {/* Share */}
+      {/* App */}
       <section className="panel p-5">
         <div className="flex items-start gap-2.5">
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-700">
-            <Share2 className="h-4 w-4" />
+            <Smartphone className="h-4 w-4" />
           </span>
           <div>
-            <h2 className="text-sm font-semibold text-slate-900">Share</h2>
+            <h2 className="text-sm font-semibold text-slate-900">App</h2>
             <p className="mt-0.5 text-[11px] font-medium text-slate-500">
-              Send your numbers to someone.
+              Install and share Spends Data.
             </p>
           </div>
         </div>
 
         <div className="mt-3 divide-y divide-slate-100">
+          <Row
+            title={installed ? 'App installed' : 'Download app'}
+            subtitle={
+              installed
+                ? 'Open the download options to reinstall or get the Android build.'
+                : 'Choose the native Android app or install this website — both go offline.'
+            }
+          >
+            <button
+              type="button"
+              onClick={onOpenDownload}
+              className="flex h-9 items-center gap-1.5 rounded-lg bg-indigo-600 px-3 text-[11px] font-bold text-white transition hover:bg-indigo-700"
+            >
+              <Download className="h-3 w-3" />
+              Download
+            </button>
+          </Row>
+
+
+
+
+
           <Row title="Share summary" subtitle="Send this week's numbers to a friend or family">
             <button
               type="button"

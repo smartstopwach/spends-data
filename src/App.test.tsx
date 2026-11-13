@@ -3,6 +3,7 @@ import { renderToString } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import App from './App';
 import { TransactionTabsCard } from './components/TransactionTabsCard';
+import { DownloadPage } from './components/DownloadPage';
 import { createSampleTransactions } from './constants';
 
 describe('Full App Render Smoke Test', () => {
@@ -51,5 +52,37 @@ describe('Active state & dummy data hygiene', () => {
   it('marks the active navigation item for assistive tech', () => {
     const html = renderToString(React.createElement(App));
     expect(html).toContain('aria-current');
+  });
+});
+
+describe('Download tab', () => {
+  it('offers the one-tap app download', () => {
+    const html = renderToString(
+      React.createElement(DownloadPage, {
+        pwa: {
+          install: async () => 'manual' as const,
+          installed: false,
+          canNativePrompt: false,
+          platform: 'desktop' as const,
+        },
+      })
+    );
+    expect(html).toContain('Download app');
+    expect(html).toContain('Spends Data app');
+  });
+
+  it('shows the installed state', () => {
+    const html = renderToString(
+      React.createElement(DownloadPage, {
+        pwa: {
+          install: async () => 'installed' as const,
+          installed: true,
+          canNativePrompt: false,
+          platform: 'installed' as const,
+        },
+      })
+    );
+    expect(html).toContain('Installed on this device');
+    expect(html).not.toMatch(/<button[^>]*>[\s\S]*?Download app<\/button>/);
   });
 });

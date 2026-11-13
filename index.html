@@ -11,6 +11,15 @@
       content="Track money in, daily spends and your running balance. Weekly email reports, offline support, no account needed."
     />
 
+    <!-- App / PWA. The manifest is referenced by an absolute path on purpose: Vite must
+         not bundle it into assets/, or its relative icon and start_url paths break. -->
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <meta name="application-name" content="Spends Data" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Spends Data" />
+    <link rel="apple-touch-icon" href="./assets/app-BTj-Du5n.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="./assets/app-DmGkNGpO.png" />
     <link rel="icon" type="image/svg+xml" href="./assets/app-D_ekvuS1.svg" />
 
@@ -34,8 +43,8 @@
       media="print"
       onload="this.media='all'"
     />
-    <script type="module" crossorigin src="./assets/app-DcMf6i_c.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/app-BbpgFmah.css">
+    <script type="module" crossorigin src="./assets/app-BQ-azrux.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/app-DHOQy85v.css">
   </head>
   <body>
     <div id="root"></div>

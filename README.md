@@ -11,6 +11,7 @@ A clean, fast, easy-to-use web app to record **money coming in (+)** and **daily
 - **Weekly email report**: pick your Gmail, choose the day/time, and get an itemised report (summary, category split, day-by-day entries). One click opens Gmail compose, or configure EmailJS for fully automatic sending.
 - **Custom date ranges**: last 7 days, last 14 days, this month or any from → to dates.
 - **Data ownership**: everything stays in your browser's localStorage — no login, no server. Export CSV or a JSON backup any time.
+- **Installable app**: the Download tab installs Spends Data on your phone or computer with one tap. It opens full screen and works offline after the first visit.
 - **Static and fast**: pure frontend, hashed assets, works on GitHub Pages.
 
 ## Local development

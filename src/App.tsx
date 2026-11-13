@@ -11,6 +11,7 @@ import {
   Menu,
   Settings,
   RotateCcw,
+  Smartphone,
   Sparkles,
 } from 'lucide-react';
 import { CategoryPanel } from './components/CategoryPanel';
@@ -24,6 +25,9 @@ import { PeriodSwitcher } from './components/PeriodSwitcher';
 import { SettingsCard } from './components/SettingsCard';
 import { useNotifications } from './hooks/useNotifications';
 import { useStorageUsage } from './hooks/useStorageUsage';
+import { usePwa } from './hooks/usePwa';
+import { PwaBanners } from './components/PwaBanners';
+import { DownloadPage } from './components/DownloadPage';
 import { shareSummary, vibrate } from './utils/notifications';
 import { composeNotification } from './utils/notificationCopy';
 import { TrendCard } from './components/TrendCard';
@@ -39,7 +43,7 @@ const readHashView = (): View => {
   if (typeof window === 'undefined') return 'home';
   const hash = window.location.hash.replace('#', '');
   if (hash === 'ledger' || hash === 'records') return 'transactions';
-  return hash === 'transactions' || hash === 'reports' || hash === 'settings'
+  return hash === 'transactions' || hash === 'reports' || hash === 'download' || hash === 'settings'
     ? hash
     : 'home';
 };
@@ -70,6 +74,7 @@ export const App: React.FC = () => {
   const { config: reportConfig, update: updateReportConfig, markSent, due } = useEmailReport();
   const notifications = useNotifications();
   const storage = useStorageUsage(transactions.length);
+  const pwa = usePwa();
 
   const monthLabel = periodInfo.label;
   const reportRange = resolveReportRange(reportConfig);
@@ -282,6 +287,18 @@ export const App: React.FC = () => {
                     >
                       <FileJson className="h-3.5 w-3.5 text-emerald-500" />
                       Download backup
+                    </button>
+                    <button
+                      role="menuitem"
+                      type="button"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        goTo('download');
+                      }}
+                      className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[12px] font-medium text-slate-700 transition hover:bg-slate-50 focus-visible:bg-slate-50 focus-visible:outline-none"
+                    >
+                      <Smartphone className="h-3.5 w-3.5 text-indigo-500" />
+                      Download app
                     </button>
                     <button
                       role="menuitem"
@@ -674,6 +691,8 @@ export const App: React.FC = () => {
               </div>
             </div>
           </>
+        ) : view === 'download' ? (
+          <DownloadPage pwa={pwa} />
         ) : (
           <>
             {/* ── Settings ───────────────────────────────── */}
@@ -690,6 +709,8 @@ export const App: React.FC = () => {
             <SettingsCard
               storage={storage}
               transactionCount={transactions.length}
+              installed={pwa.installed}
+              onOpenDownload={() => goTo('download')}
               notifications={{
                 settings: notifications.settings,
                 permission: notifications.permission,
@@ -740,7 +761,7 @@ export const App: React.FC = () => {
         )}
 
         <footer className="mt-8 flex flex-wrap items-center justify-between gap-2 border-t border-slate-200/80 pt-4 text-[11px] font-medium text-slate-400">
-          <span>Spends Data · your data stays in this browser</span>
+          <span>Spends Data · installable app · offline-first</span>
           <span className="num">
             {transactions.length} total records · balance{' '}
             {walletSummary.balance >= 0 ? 'positive' : 'negative'}
@@ -748,6 +769,7 @@ export const App: React.FC = () => {
         </footer>
       </main>
 
+      <PwaBanners />
     </div>
   );
 };

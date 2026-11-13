@@ -1,4 +1,4 @@
-export const APP_VERSION = '1.2.0';
+export const APP_VERSION = '1.3.0';
 
 export interface ChangelogEntry {
   version: string;
@@ -8,6 +8,17 @@ export interface ChangelogEntry {
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: '1.3.0',
+    title: 'Install Spends Data as an app',
+    date: 'November 2026',
+    items: [
+      'Download tab: one tap installs Spends Data on your phone or computer.',
+      'Opens full screen from your home screen or app list.',
+      'Works offline after the first visit.',
+      'Same data as the browser you install from.',
+    ],
+  },
   {
     version: '1.2.0',
     title: 'Weekly, month views and notifications',
