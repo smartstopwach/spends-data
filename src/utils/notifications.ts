@@ -17,7 +17,7 @@ export interface NotificationSettings {
 export const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
   enabled: false,
   dailyReminder: true,
-  reminderHour: 21,
+  reminderHour: 20,
   walletAlerts: true,
   reportReminder: true,
   sound: true,

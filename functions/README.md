@@ -87,9 +87,9 @@ Endpoints (JSON bodies; `Authorization: Bearer <WORKER_TOKEN>` when a token is s
 
 Reminders the cron sends once per local day, at the device's timezone:
 
-- daily logging nudge at the chosen hour
+- daily evening check-in at the chosen hour (default 8 PM)
 - money-left alert, Saturday 20:30 (delivered in the 20:00 hour, because the cron runs hourly)
-- weekly report reminder, Tuesday 10:00
+- weekly report reminder, Tuesday 19:00
 
 Subscriptions are stored in KV under `push:<sha256 of endpoint>`. Dead subscriptions (HTTP 404/410 from the
 push service) are removed automatically.

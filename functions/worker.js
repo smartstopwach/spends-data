@@ -11,10 +11,10 @@ const CORS = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
-/* Reminder timing: keep in sync with src/utils/reminderPlan.ts.
+/* Reminder timing and copy: keep in sync with src/utils/reminderPlan.ts and src/utils/reminderCopy.ts.
  * The cron runs at the top of every hour, so the 20:30 money-left slot is delivered at 20:00 local. */
 const WALLET_SLOT = { weekday: 6, hour: 20 };
-const REPORT_SLOT = { weekday: 2, hour: 10 };
+const REPORT_SLOT = { weekday: 2, hour: 19 };
 const PUSH_PREFIX = 'push:';
 
 const json = (data, status = 200) =>
@@ -222,7 +222,7 @@ function sanitizePrefs(input = {}) {
   return {
     daily: {
       enabled: Boolean(input.daily?.enabled),
-      hour: Number.isInteger(hour) && hour >= 0 && hour <= 23 ? hour : 9,
+      hour: Number.isInteger(hour) && hour >= 0 && hour <= 23 ? hour : 20,
     },
     wallet: Boolean(input.wallet),
     report: Boolean(input.report),
@@ -283,13 +283,13 @@ async function dispatchPush(env, now) {
 
     const due = [];
     if (record.prefs.daily.enabled && local.hour === record.prefs.daily.hour) {
-      due.push({ kind: 'daily', payload: { title: "Log today's spends", body: 'Takes 5 seconds — keep your balance accurate.', tag: 'daily', url: './#home' } });
+      due.push({ kind: 'daily', payload: { title: 'Evening check-in 🌙', body: "Add today's spends before the day closes. Takes 5 seconds.", tag: 'daily', url: './#home' } });
     }
     if (record.prefs.wallet && local.weekday === WALLET_SLOT.weekday && local.hour === WALLET_SLOT.hour) {
-      due.push({ kind: 'wallet', payload: { title: 'Check your money left', body: 'Open Spends Data to see how much is left this month.', tag: 'wallet', url: './' } });
+      due.push({ kind: 'wallet', payload: { title: 'Money check 💰', body: "See how much of this month's money is still left.", tag: 'wallet', url: './#home' } });
     }
     if (record.prefs.report && local.weekday === REPORT_SLOT.weekday && local.hour === REPORT_SLOT.hour) {
-      due.push({ kind: 'report', payload: { title: 'Weekly report ready', body: 'Your 7-day spend summary is ready to email.', tag: 'report', url: './#reports' } });
+      due.push({ kind: 'report', payload: { title: 'Your weekly report is ready 📬', body: 'Last 7 days of spends, ready to send in one tap.', tag: 'report', url: './#reports' } });
     }
 
     let changed = false;

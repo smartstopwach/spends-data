@@ -34,7 +34,7 @@ Pushing to the deployed branch rebuilds the site automatically. The build writes
 - **Installed app (PWA)**: Settings → Notifications → *Background notifications* → **Turn on**. Works in Chrome, Edge and Android browsers. On iPhone, add Spends Data to the Home Screen first (iOS 16.4+). It needs the worker from the next section.
 - **Android app**: reminders are scheduled by Android itself. *Phone reminders (Android)* → **Re-schedule** keeps them in sync with Settings.
 
-Both use the same schedule: daily reminder at your chosen hour, money-left alert Saturday 20:30, weekly report reminder Tuesday 10:00.
+Both use the same schedule: evening daily reminder at your chosen hour (default 8 PM), money-left alert Saturday 8:30 PM, weekly report reminder Tuesday 7 PM.
 
 ## Background email (optional)
 

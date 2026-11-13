@@ -1,5 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import { REMINDER_IDS, REPORT_REMINDER_SLOT, WALLET_ALERT_SLOT } from './reminderPlan';
+import { REMINDER_COPY } from './reminderCopy';
 
 /**
  * Thin wrapper around Capacitor plugins so the web build keeps working
@@ -154,8 +155,8 @@ export async function scheduleNativeReminders(plan: NativeReminderPlan): Promise
     if (plan.daily) {
       notifications.push({
         id: NOTIFICATION_IDS.daily,
-        title: "Log today's spends",
-        body: 'Takes 5 seconds — keep your balance accurate.',
+        title: REMINDER_COPY.daily.title,
+        body: REMINDER_COPY.daily.body,
         channelId: CHANNEL_ID,
         schedule: {
           on: { hour: plan.hour, minute: 0 },
@@ -170,8 +171,8 @@ export async function scheduleNativeReminders(plan: NativeReminderPlan): Promise
     if (plan.walletAlert) {
       notifications.push({
         id: NOTIFICATION_IDS.wallet,
-        title: 'Check your money left',
-        body: 'Open Spends Data to see how much is left this month.',
+        title: REMINDER_COPY.wallet.title,
+        body: REMINDER_COPY.wallet.body,
         channelId: CHANNEL_ID,
         schedule: {
           on: { hour: WALLET_ALERT_SLOT.hour, minute: WALLET_ALERT_SLOT.minute, weekday: WALLET_ALERT_SLOT.weekday },
@@ -186,8 +187,8 @@ export async function scheduleNativeReminders(plan: NativeReminderPlan): Promise
     if (plan.reportReminder) {
       notifications.push({
         id: NOTIFICATION_IDS.report,
-        title: 'Weekly report ready',
-        body: 'Your 7-day spend summary is ready to email.',
+        title: REMINDER_COPY.report.title,
+        body: REMINDER_COPY.report.body,
         channelId: CHANNEL_ID,
         schedule: {
           on: { hour: REPORT_REMINDER_SLOT.hour, minute: REPORT_REMINDER_SLOT.minute, weekday: REPORT_REMINDER_SLOT.weekday },

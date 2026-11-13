@@ -158,7 +158,7 @@ describe('worker cron push dispatch', () => {
     expect(pushCalls).toHaveLength(1);
   });
 
-  it('sends the report reminder on Tuesday 10:00 local time only', async () => {
+  it('sends the report reminder on Tuesday 19:00 local time only', async () => {
     const env = await makeEnv();
     await worker.fetch(
       post('/push/subscribe', {
@@ -169,10 +169,10 @@ describe('worker cron push dispatch', () => {
       env
     );
     vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-11-16T10:00:00Z')); // Monday
+    vi.setSystemTime(new Date('2026-11-16T19:00:00Z')); // Monday
     await runCron(env);
     expect(pushCalls).toHaveLength(0);
-    vi.setSystemTime(new Date('2026-11-17T10:00:00Z')); // Tuesday
+    vi.setSystemTime(new Date('2026-11-17T19:00:00Z')); // Tuesday
     await runCron(env);
     expect(pushCalls).toHaveLength(1);
   });

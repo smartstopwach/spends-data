@@ -302,7 +302,7 @@ export const SettingsCard: React.FC<SettingsCardProps> = ({
               className="field !w-auto !py-1 text-[11px]"
               aria-label="Reminder time"
             >
-              {[8, 12, 17, 19, 20, 21, 22, 23].map((h) => (
+              {[17, 18, 19, 20, 21, 22, 23].map((h) => (
                 <option key={h} value={h}>
                   {h > 12 ? `${h - 12} PM` : h === 12 ? '12 PM' : `${h} AM`}
                 </option>
